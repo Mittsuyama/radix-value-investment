@@ -1,5 +1,5 @@
 import { BizItem } from '@renderer/types';
-import { get } from './request';
+import { get, makeSureiIsArray } from './request';
 
 const url = 'https://datacenter.eastmoney.com/securities/api/data/v1/get';
 
@@ -17,7 +17,14 @@ export const getBusinessRequest = async (stockId: string) => {
     client: 'PC',
   });
 
-  const list: BizItem[] = res.result.data;
+  if (res.code !== 0) {
+    return {
+      bizListByDistrict: [],
+      bizListByProduct: [],
+    };
+  }
+
+  const list = makeSureiIsArray(res.result.data) as BizItem[];
 
   const lastAnualDate = list.reduce(
     (pre, cur) => {

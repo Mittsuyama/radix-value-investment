@@ -7,7 +7,7 @@ import { Card, Text } from '@radix-ui/themes';
 import { ACCOUNT_ITEM, ColorMap } from '@renderer/constants';
 import { FinancialReport } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
-import { formatFinancialNumber, getLineData } from '@renderer/utils';
+import { ChartDataItem, formatFinancialNumber, getLineData } from '@renderer/utils';
 
 interface BaseLineChartCardProps {
   title: ReactNode;
@@ -20,12 +20,9 @@ interface BaseLineChartCardProps {
 
 interface FormatterItem {
   seriesName: string;
-  /** percent */
-  value: number;
-  axisIndex: number;
-  color: string;
-  dataIndex: number;
-  seriesIndex: number;
+  data: {
+    origin?: ChartDataItem;
+  };
 }
 
 export const BaseLineChartCard = memo<BaseLineChartCardProps>(
@@ -53,23 +50,19 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
         <table>
           {valueList
             .slice()
+            .map((value) => value.data.origin)
+            .filter((origin): origin is ChartDataItem => !!origin?.value)
             .sort((a, b) => (b.value || -1) - (a.value || -1))
-            .map(({ seriesName, value: percent, dataIndex, seriesIndex, color }) => {
-              const value = series[seriesIndex]?.datas[dataIndex].value;
-              const total = reverseTotals?.[dataIndex];
+            .map(({ seriesName, percent, value, percentToBase }) => {
               return (
                 <tr key={seriesName}>
                   <td>
                     <div className="w-[10px] h-[10px] rounded-lg" style={{ background: color }} />
                   </td>
                   <td>{seriesName}</td>
-                  {total ? (
-                    <td className="font-bold text-gray-12">
-                      {value ? ((value / total) * 100).toFixed(2) + '%' : '-'}
-                    </td>
-                  ) : null}
+                  <td className="font-bold text-gray-12">{percent.toFixed(2) + '%'}</td>
                   <td>{formatFinancialNumber(value)}</td>
-                  <td>{percent ? percent.toFixed(2) + '%' : '-'}</td>
+                  <td>{percentToBase.toFixed(2) + '%'}</td>
                 </tr>
               );
             })}
@@ -112,8 +105,9 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
                 series: series.map(({ name, datas }, index) => ({
                   name,
                   type: 'line',
-                  data: datas.map(({ percent }) => ({
-                    value: percent,
+                  data: datas.map((data) => ({
+                    value: data.percentToBase || undefined,
+                    origin: data,
                   })),
                   itemStyle: {
                     color: colors[index],

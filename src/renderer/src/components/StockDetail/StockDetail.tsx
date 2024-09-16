@@ -115,18 +115,22 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
         </div>
         <div className="w-full h-80 mb-4 flex gap-4">
           <div className="flex-[6]">
-            <Profitability key={info.id} reports={info.reports} cap={info.totalMarketCap} />
+            <Profitability
+              key={`${info.id}-${month}`}
+              reports={info.reports}
+              cap={info.totalMarketCap}
+            />
           </div>
           <div className="flex-[4]">
-            <Biz key={info.id} items={business} />
+            <Biz key={`${info.id}-${month}`} items={business} />
           </div>
           <div className="flex-[5]">
-            <Cost key={info.id} reports={info.reports} />
+            <Cost key={`${info.id}-${month}`} reports={info.reports} />
           </div>
         </div>
         <div className="w-full h-80 mb-4 flex gap-4">
           {balanceSheets.map((type) => (
-            <div key={`${info.id}-${type}`} className="flex-1">
+            <div key={`${info.id}-${type}-${month}`} className="flex-1">
               <BalanceSheetChartCard type={type} reports={info.reports} />
             </div>
           ))}

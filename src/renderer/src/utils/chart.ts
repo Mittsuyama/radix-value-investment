@@ -1,9 +1,10 @@
 import { ACCOUNT_ITEM } from '@renderer/constants';
 import { FinancialReport } from '@renderer/types';
 
-interface ChartDataItem {
+export interface ChartDataItem {
   seriesName: string;
   percent: number;
+  percentToBase: number;
   value: number;
   year: number;
   month: number;
@@ -13,40 +14,52 @@ interface GetValidItemsParams {
   report: FinancialReport;
   accountItemKeys: Array<keyof typeof ACCOUNT_ITEM>;
   total?: number;
+  base?: number;
   minPercent?: number;
 }
 
-const getValidItems = ({ report, total, accountItemKeys, minPercent }: GetValidItemsParams) => {
+const getValidItems = ({
+  report,
+  total,
+  base,
+  accountItemKeys,
+  minPercent,
+}: GetValidItemsParams) => {
   const datas = accountItemKeys
     .map<ChartDataItem | undefined>((key) => {
       const value = Number(report.data[ACCOUNT_ITEM[key]]) || 0;
-      const percent = ((Number(report.data[ACCOUNT_ITEM[key]]) || 0) / (total || 1)) * 100;
+      const percent = (value / (total || 1)) * 100;
+      const percentToBase = (value / (base || 1)) * 100;
       if (typeof minPercent === 'undefined' || percent > minPercent) {
         const [, , chinese] = key.split('-');
         return {
           seriesName: chinese,
           value,
           percent,
+          percentToBase,
           year: report.year,
           month: report.month,
         };
       }
       return undefined;
     })
-    .filter(Boolean);
+    .filter((item): item is ChartDataItem => !!item);
 
   const totalValue = datas.reduce((pre, cur) => pre + (cur?.value || 0), 0);
-  const restItem = total
-    ? [
-        {
-          year: report.year,
-          month: report.month,
-          seriesName: '剩余',
-          value: total - totalValue,
-          percent: totalValue / total,
-        },
-      ]
-    : [];
+
+  const restItem: ChartDataItem[] =
+    total && Math.abs(total - totalValue) > 1_0000
+      ? [
+          {
+            year: report.year,
+            month: report.month,
+            seriesName: '剩余',
+            value: total - totalValue,
+            percent: ((total - totalValue) / total) * 100,
+            percentToBase: ((total - totalValue) / (base || 1)) * 100,
+          },
+        ]
+      : [];
 
   return datas
     .concat(restItem)
@@ -67,10 +80,11 @@ export const getLineData = ({
   minPercent,
   totalName,
 }: GetLineDataParams) => {
-  const itemsInEveryReports = reports.map((report) => {
+  const itemsInEveryReports = reports.map((report, index) => {
     return getValidItems({
       report,
-      total: totals?.[0],
+      base: totals?.[0],
+      total: totals?.[index],
       accountItemKeys,
       minPercent,
     });
@@ -84,13 +98,15 @@ export const getLineData = ({
     .map((name) => {
       return {
         name,
-        datas: itemsInEveryReports.map((items, index) => {
+        datas: itemsInEveryReports.map<ChartDataItem>((items, index) => {
           const findedItem = items.find((item) => item.seriesName === name);
           return {
+            seriesName: name,
             year: reports[index].year,
             month: reports[index].month,
-            percent: findedItem?.percent,
-            value: findedItem?.value,
+            percentToBase: findedItem?.percentToBase || 0,
+            percent: findedItem?.percent || 0,
+            value: findedItem?.value || 0,
           };
         }),
       };
@@ -101,9 +117,11 @@ export const getLineData = ({
             {
               name: totalName || 'Total',
               datas: totals.map((total, index) => ({
+                seriesName: totalName || 'Total',
                 year: reports[index].year,
                 month: reports[index].month,
-                percent: (total / totals[0]) * 100,
+                percent: 100,
+                percentToBase: (total / totals[0]) * 100,
                 value: total,
               })),
             },

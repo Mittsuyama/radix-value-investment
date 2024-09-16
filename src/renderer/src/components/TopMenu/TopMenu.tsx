@@ -85,6 +85,16 @@ export const TopMenu = memo(() => {
     }
   }, [searchResultList]);
 
+  const jumpToResult = useMemoizedFn((stock: SearchStockItem) => {
+    if (['sh', 'sz', 'bj'].includes(stock.sType.toLowerCase())) {
+      history.push(`/analyst?id=${stock.stockId}`);
+      setSelectedResultItem(null);
+      setVisible(false);
+    } else {
+      // TODO (xss): notification
+    }
+  });
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -99,9 +109,7 @@ export const TopMenu = memo(() => {
         } else if (e.key === 'ArrowUp' && index > 0) {
           setSelectedResultItem(searchResultList[index - 1]);
         } else if (e.key === 'Enter' && selectedResultItem) {
-          history.push(`/analyst?id=${selectedResultItem.stockId}`);
-          setSelectedResultItem(null);
-          setVisible(false);
+          jumpToResult(selectedResultItem);
         }
       }
     };
@@ -109,7 +117,7 @@ export const TopMenu = memo(() => {
     return () => {
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [searchResultList, selectedResultItem]);
+  }, [searchResultList, selectedResultItem, history, jumpToResult]);
 
   return (
     <div className="w-full h-14 flex items-center gap-5 px-6">
@@ -164,6 +172,7 @@ export const TopMenu = memo(() => {
             </Tooltip>
           </Dialog.Trigger>
           <Dialog.Content>
+            <Dialog.Title style={{ display: 'none' }} />
             <TextField.Root
               value={inputValue}
               onChange={(e) => onValueChange(e.target.value)}
@@ -180,8 +189,9 @@ export const TopMenu = memo(() => {
                 searchResultList.map((item) => (
                   <div
                     className={cls('flex items-center gap-2 px-2 py-3 rounded-md', {
-                      'bg-accent-2': selectedResultItem?.stockId === item.stockId,
+                      'bg-accent-2 select-none': selectedResultItem?.stockId === item.stockId,
                     })}
+                    onClick={() => jumpToResult(item)}
                     onMouseEnter={() => setSelectedResultItem(item)}
                     key={item.stockId}
                   >
