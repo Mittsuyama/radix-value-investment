@@ -29,7 +29,7 @@ export const Dashboard = memo(() => {
         const res = await getBatchStocksWithReportsDetailRequest(
           {
             ids: favList,
-            years: 4,
+            years: 3,
           },
           resource,
         );

@@ -18,10 +18,14 @@ interface BaseLineChartCardProps {
   totalName?: string;
 }
 
+interface FormatterItemOriginData extends ChartDataItem {
+  color: string;
+}
+
 interface FormatterItem {
   seriesName: string;
   data: {
-    origin?: ChartDataItem;
+    origin?: FormatterItemOriginData;
   };
 }
 
@@ -51,9 +55,9 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
           {valueList
             .slice()
             .map((value) => value.data.origin)
-            .filter((origin): origin is ChartDataItem => !!origin?.value)
+            .filter((origin): origin is FormatterItemOriginData => !!origin?.value)
             .sort((a, b) => (b.value || -1) - (a.value || -1))
-            .map(({ seriesName, percent, value, percentToBase }) => {
+            .map(({ seriesName, percent, value, percentToBase, color }) => {
               return (
                 <tr key={seriesName}>
                   <td>
@@ -107,7 +111,10 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
                   type: 'line',
                   data: datas.map((data) => ({
                     value: data.percentToBase || undefined,
-                    origin: data,
+                    origin: {
+                      ...data,
+                      color: colors[index],
+                    },
                   })),
                   itemStyle: {
                     color: colors[index],

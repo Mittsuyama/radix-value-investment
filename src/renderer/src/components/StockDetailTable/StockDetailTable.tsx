@@ -44,6 +44,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           <Table.ColumnHeaderCell>#</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Industry</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo title="ROE" info="TTM" />
           </Table.ColumnHeaderCell>
@@ -96,6 +97,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   {record.name}
                 </Link>
               </Table.Cell>
+              <Table.Cell>{record.industry}</Table.Cell>
               <Table.Cell>{record.ttmROE.toFixed(2) + '%'}</Table.Cell>
               <Table.Cell>{record.ttmPE.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.pb.toFixed(2)}</Table.Cell>

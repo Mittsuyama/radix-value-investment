@@ -28,7 +28,7 @@ export const Filter = memo(() => {
       fetchingRef.current = true;
       const res = await getBatchStocksWithReportsDetailRequest(
         {
-          years: 4,
+          years: 3,
           isOverFiveYear: true,
           minTotalMarketCAP: 5_000_000_000,
           ttmROE: [15, 1000],

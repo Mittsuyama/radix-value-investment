@@ -5,7 +5,7 @@ import { Theme } from '@radix-ui/themes';
 import { Separator } from '@radix-ui/themes';
 import { TopMenu } from '@renderer/components/TopMenu';
 import { colorAtom, stockBaseInfoListResourceAtom, themeAtom } from '@renderer/models';
-import { Dashboard, Filter, Analyst } from '@renderer/pages';
+import { Dashboard, Filter, Analyst, GoodLuck } from '@renderer/pages';
 import '@radix-ui/themes/styles.css';
 import { getStockBaseInfoListByFilterRequeset } from './api';
 
@@ -32,6 +32,7 @@ function App(): JSX.Element {
             <Route exact path="/dashboard" component={Dashboard} />
             <Route exact path="/analyst" component={Analyst} />
             <Route exact path="/filter" component={Filter} />
+            <Route exact path="/goodluck" component={GoodLuck} />
             <Route exact path="/">
               <Redirect to="/dashboard" />
             </Route>

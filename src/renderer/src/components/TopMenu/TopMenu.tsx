@@ -14,11 +14,18 @@ import {
   Badge,
   DropdownMenu,
 } from '@radix-ui/themes';
-import { BarChartIcon, SunIcon, MoonIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import {
+  MagicWandIcon,
+  BarChartIcon,
+  SunIcon,
+  MoonIcon,
+  MagnifyingGlassIcon,
+} from '@radix-ui/react-icons';
 import { colorAtom, themeAtom } from '@renderer/models';
 import { searchStockRequest } from '@renderer/api/stock-search';
 import { SearchStockItem } from '@renderer/types';
 import { ColorMap, ColorType } from '@renderer/constants';
+import { useRandomlyPickOneStock } from '@renderer/hooks';
 
 interface TopMenuItemProps {
   title: string;
@@ -45,7 +52,8 @@ TopMenuItem.displayName = 'TopMenuItem';
 const MENU_ITEM_LIST: Array<{ title: string; href: string }> = [
   { title: 'Dashboard', href: '/dashboard' },
   { title: 'Analyst', href: '/analyst' },
-  { title: 'Filter', href: '/filter' },
+  // { title: 'Filter', href: '/filter' },
+  { title: 'Good Luck', href: '/goodluck' },
 ];
 
 export const TopMenu = memo(() => {
@@ -57,6 +65,7 @@ export const TopMenu = memo(() => {
   const [inputValue, setInputValue] = useState('');
   const [searchResultList, setSearchResultList] = useState<Array<SearchStockItem> | null>([]);
   const [selectedResultItem, setSelectedResultItem] = useState<SearchStockItem | null>(null);
+  const onRandomlyPickOneStock = useRandomlyPickOneStock();
 
   const { run: onSearch } = useDebounceFn(
     useMemoizedFn(async (inputValue: string) => {
@@ -99,6 +108,11 @@ export const TopMenu = memo(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         setVisible((pre) => !pre);
+        return;
+      }
+      if (e.key === 'i' && (e.metaKey || e.ctrlKey)) {
+        onRandomlyPickOneStock();
+        return;
       }
       if (searchResultList) {
         const index = searchResultList.findIndex(
@@ -163,6 +177,11 @@ export const TopMenu = memo(() => {
             ))}
           </DropdownMenu.Content>
         </DropdownMenu.Root>
+        <Tooltip content="randomly pick one stock (type ⌘I to pick one) ">
+          <IconButton onClick={onRandomlyPickOneStock} variant="ghost">
+            <MagicWandIcon />
+          </IconButton>
+        </Tooltip>
         <Dialog.Root open={visible} onOpenChange={setVisible}>
           <Dialog.Trigger>
             <Tooltip content="Stock Search (type ⌘K to Search)">

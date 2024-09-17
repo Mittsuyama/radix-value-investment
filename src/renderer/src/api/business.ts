@@ -25,6 +25,7 @@ export const getBusinessRequest = async (stockId: string) => {
   }
 
   const list = makeSureiIsArray(res.result.data) as BizItem[];
+  console.log(list[0]);
 
   const lastAnualDate = list.reduce(
     (pre, cur) => {
