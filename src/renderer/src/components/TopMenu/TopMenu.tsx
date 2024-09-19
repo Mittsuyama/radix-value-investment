@@ -131,7 +131,7 @@ export const TopMenu = memo(() => {
     return () => {
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [searchResultList, selectedResultItem, history, jumpToResult]);
+  }, [searchResultList, selectedResultItem, history, jumpToResult, onRandomlyPickOneStock]);
 
   return (
     <div className="w-full h-14 flex items-center gap-5 px-6">

@@ -52,7 +52,7 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
           <Flex direction="column" gap="3">
             <label>
               <Text as="div" size="2" mb="1" weight="bold">
-                Latest Buy Price
+                Latest Trade Price
               </Text>
               <TextField.Root
                 value={values.price}
@@ -68,7 +68,7 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
             </label>
             <label>
               <Text as="div" size="2" mb="1" weight="bold">
-                Latest Buy Date
+                Latest Trade Date
               </Text>
               <TextField.Root
                 value={values.date}

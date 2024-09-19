@@ -15,3 +15,10 @@ export interface CustomedStockInfo {
   latestBuyDate?: string;
   latestBuyPrice?: number;
 }
+
+export type SortKey = 'LTPRC' | 'GLTD' | 'score' | 'FCF_avg_3' | 'CAP';
+
+export interface SortConfig {
+  direction: 'asc' | 'desc';
+  key: SortKey;
+}

@@ -96,7 +96,7 @@ export const Analyst = memo(() => {
       <div className="flex-none overflow-auto w-60">
         {stockId ? (
           <div className="w-full">
-            {titleRender('Current')}
+            {titleRender('Base')}
             {currentInfo ? itemRender(currentInfo) : spinRender()}
           </div>
         ) : null}

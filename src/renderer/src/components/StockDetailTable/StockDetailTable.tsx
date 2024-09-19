@@ -1,23 +1,116 @@
 import { memo, useMemo } from 'react';
+import cls from 'classnames';
 import { useHistory } from 'react-router-dom';
-import { useAtomValue } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { Table, Link, Tooltip } from '@radix-ui/themes';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { StockWithReportsDetail } from '@renderer/types';
-import { customedStockInfoListAtom } from '@renderer/models';
-import { autoSort, getStockScore } from '@renderer/utils';
+import { TriangleUpIcon, TriangleDownIcon, CaretSortIcon } from '@radix-ui/react-icons';
+import { CustomedStockInfo, StockWithReportsDetail, SortConfig, SortKey } from '@renderer/types';
+import { customedStockInfoListAtom, sortConfigAtom } from '@renderer/models';
+import { getStockScore } from '@renderer/utils';
 import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
 import { ColoredChangeRate } from '@renderer/components/ColoredChangeRate';
 
-const TableHeaderCellWithInfo = memo<{ title: string; info: string }>(({ title, info }) => (
-  <div className="flex items-center gap-1">
-    <div className="font-bold">{title}</div>
-    <Tooltip content={info}>
-      <InfoCircledIcon style={{ fontSize: 13 }} />
+const computeRecordValue = (
+  record: StockWithReportsDetail,
+  customedInfoMap: Map<string, CustomedStockInfo>,
+  type: SortKey,
+) => {
+  const customedInfo = customedInfoMap.get(record.id);
+  if (type === 'LTPRC') {
+    return customedInfo?.latestBuyPrice
+      ? ((record.currentPrice - customedInfo.latestBuyPrice) / record.currentPrice) * 100
+      : NaN;
+  }
+  if (type === 'GLTD') {
+    return customedInfo?.latestBuyDate
+      ? (Date.now() - new Date(customedInfo.latestBuyDate).getTime()) / 86400_000
+      : NaN;
+  }
+  if (type === 'score') {
+    return getStockScore(record);
+  }
+  if (type === 'FCF_avg_3') {
+    return record.cfcAvg3;
+  }
+  if (type === 'CAP') {
+    return record.totalMarketCap;
+  }
+  return NaN;
+};
+
+const TableHeaderCellWithInfo = memo<{
+  title: string;
+  info: string;
+  sortKey?: SortKey;
+  onSort?: (config?: SortConfig) => void;
+  sortConfig?: SortConfig;
+  defaultDirection?: SortConfig['direction'];
+}>(({ title, info, onSort, sortKey, sortConfig, defaultDirection }) => {
+  const sortable = onSort && sortKey;
+  return (
+    <Tooltip
+      content={
+        info || sortKey ? (
+          <span>
+            {info ? <span className="mb-1">{info}</span> : null}
+            {sortKey ? (
+              <>
+                <br />
+                <span>Click to sort by this column</span>
+              </>
+            ) : null}
+          </span>
+        ) : null
+      }
+    >
+      <div
+        className={cls('flex items-center gap-1 m-[-11.4px] px-2', {
+          'cursor-pointer hover:bg-gray-3': sortable,
+        })}
+        style={{ height: 41 }}
+        onClick={() => {
+          if (!sortKey) {
+            return;
+          }
+          if (sortConfig && sortConfig?.key === sortKey) {
+            if (sortConfig.direction === 'asc') {
+              if (defaultDirection !== 'desc') {
+                onSort?.({ key: sortKey, direction: 'desc' });
+              } else {
+                onSort?.(undefined);
+              }
+            } else {
+              if (defaultDirection !== 'asc') {
+                onSort?.({ key: sortKey, direction: 'asc' });
+              } else {
+                onSort?.(undefined);
+              }
+            }
+          } else {
+            onSort?.({ key: sortKey, direction: defaultDirection || 'asc' });
+          }
+        }}
+      >
+        <div className="font-bold">{title}</div>
+        {sortKey && sortConfig?.key !== sortKey ? (
+          <CaretSortIcon
+            style={{
+              marginTop: -1,
+              opacity: sortable && sortKey && sortConfig?.key !== sortKey ? 0.25 : 'unset',
+            }}
+          />
+        ) : null}
+        {sortConfig?.key === sortKey && sortConfig?.direction === 'asc' ? (
+          <TriangleUpIcon style={{ paddingBottom: 2 }} />
+        ) : null}
+        {sortConfig?.key === sortKey && sortConfig?.direction === 'desc' ? (
+          <TriangleDownIcon style={{ paddingBottom: 2 }} />
+        ) : null}
+      </div>
     </Tooltip>
-  </div>
-));
+  );
+});
 TableHeaderCellWithInfo.displayName = 'TableHeaderCellWithInfo';
 
 interface StockDetaiTableProps {
@@ -27,15 +120,31 @@ interface StockDetaiTableProps {
 
 export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }) => {
   const history = useHistory();
-
   const customedInfoList = useAtomValue(customedStockInfoListAtom);
+
+  const [sort, setSort] = useAtom(sortConfigAtom);
 
   const customedInfoMap = useMemo(
     () => new Map(customedInfoList.map((item) => [item.id, item])),
     [customedInfoList],
   );
 
-  const sortedRecords = useMemo(() => autoSort(records), [records]);
+  const sortedRecords = useMemo(() => {
+    if (sort) {
+      return records.slice().sort((a, b) => {
+        const aNumber = computeRecordValue(a, customedInfoMap, sort.key);
+        const bNumber = computeRecordValue(b, customedInfoMap, sort.key);
+        if (Number.isNaN(aNumber)) {
+          return 1;
+        }
+        if (Number.isNaN(bNumber)) {
+          return -1;
+        }
+        return sort.direction === 'asc' ? aNumber - bNumber : bNumber - aNumber;
+      });
+    }
+    return records;
+  }, [records, sort, customedInfoMap]);
 
   return (
     <Table.Root variant="surface">
@@ -54,11 +163,35 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           <Table.ColumnHeaderCell>PB</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>GPR</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
-            <TableHeaderCellWithInfo title="FCF" info="FCF 3 Years Average" />
+            <TableHeaderCellWithInfo
+              title="FCF"
+              info="FCF 3 Years Average"
+              sortKey="FCF_avg_3"
+              sortConfig={sort}
+              onSort={setSort}
+            />
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>FCF</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>CAP</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Score</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>
+            <TableHeaderCellWithInfo
+              title="CAP"
+              info="Total Market Capital value"
+              sortKey="CAP"
+              onSort={setSort}
+              sortConfig={sort}
+              defaultDirection="desc"
+            />
+          </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>
+            <TableHeaderCellWithInfo
+              title="Score"
+              info="Get weighted score"
+              sortKey="score"
+              onSort={setSort}
+              sortConfig={sort}
+              defaultDirection="desc"
+            />
+          </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Price</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo title="TCR" info="Today Change Rate" />
@@ -66,13 +199,26 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           {customed ? (
             <>
               <Table.ColumnHeaderCell>
-                <TableHeaderCellWithInfo title="LBP" info="Latest Buy Price" />
+                <TableHeaderCellWithInfo title="LTP" info="Latest Trade Price" />
               </Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>
-                <TableHeaderCellWithInfo title="LBPCR" info="Latest Buy Price Change Rate" />
+                <TableHeaderCellWithInfo
+                  title="LTPCR"
+                  info="Latest Trade Price Change Rate"
+                  sortKey="LTPRC"
+                  onSort={setSort}
+                  sortConfig={sort}
+                />
               </Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>
-                <TableHeaderCellWithInfo title="GLBD" info="Gap to Latest Buy Day" />
+                <TableHeaderCellWithInfo
+                  title="GLTD"
+                  info="Gap to Latest Trade Day"
+                  sortKey="GLTD"
+                  onSort={setSort}
+                  sortConfig={sort}
+                  defaultDirection="desc"
+                />
               </Table.ColumnHeaderCell>
             </>
           ) : null}
@@ -85,7 +231,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           const customedInfo = customedInfoMap.get(record.id);
           return (
             <Table.Row key={record.id} className="hover:bg-accent-2">
-              <Table.RowHeaderCell>{index}</Table.RowHeaderCell>
+              <Table.RowHeaderCell>{index + 1}</Table.RowHeaderCell>
               <Table.Cell>{record.id}</Table.Cell>
               <Table.Cell>
                 <Link
@@ -118,11 +264,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   <Table.Cell>
                     {customedInfo?.latestBuyPrice ? (
                       <ColoredChangeRate
-                        rate={
-                          ((record.currentPrice - customedInfo.latestBuyPrice) /
-                            record.currentPrice) *
-                          100
-                        }
+                        rate={computeRecordValue(record, customedInfoMap, 'LTPRC')}
                       />
                     ) : (
                       '-'
@@ -130,10 +272,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   </Table.Cell>
                   <Table.Cell>
                     {customedInfo?.latestBuyDate
-                      ? (
-                          (Date.now() - new Date(customedInfo.latestBuyDate).getTime()) /
-                          86400_000
-                        ).toFixed(0) + 'd'
+                      ? computeRecordValue(record, customedInfoMap, 'GLTD').toFixed(0) + 'd'
                       : '-'}
                   </Table.Cell>
                 </>
