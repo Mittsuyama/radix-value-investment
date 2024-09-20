@@ -6,12 +6,12 @@ import { BaseLineChartCard } from '@renderer/components/BaselLineChartCard';
 
 interface BalanceSheetChartCardProps {
   type: BalanceSheetType;
-  reports: FinancialReport[];
+  reports?: FinancialReport[];
 }
 
 export const BalanceSheetChartCard = memo<BalanceSheetChartCardProps>(({ type, reports }) => {
   const totals = useMemo(
-    () => reports.map((report) => Number(report.data[ACCOUNT_ITEM[totalKeyRecord[type]]]) || 0),
+    () => reports?.map((report) => Number(report.data[ACCOUNT_ITEM[totalKeyRecord[type]]]) || 0),
     [reports, type],
   );
 

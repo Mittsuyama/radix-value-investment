@@ -1,16 +1,16 @@
 import { memo, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import ReactEcharts from 'echarts-for-react';
-import { Card, Text } from '@radix-ui/themes';
+import { Card, Skeleton, Text } from '@radix-ui/themes';
 import { FinancialReport } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
 import { ColorMap } from '@renderer/constants';
 import { computeSimpleCFC } from '@renderer/utils';
 
 interface ProfitabilityProps {
-  reports: FinancialReport[];
+  reports?: FinancialReport[];
   /** 总市值 */
-  cap: number;
+  cap?: number;
 }
 
 export const Profitability = memo<ProfitabilityProps>((props) => {
@@ -19,20 +19,38 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
   const color = useAtomValue(colorAtom);
   const colors = useMemo(() => ColorMap[color].slice().reverse(), [color]);
 
-  const reversedReports = useMemo(() => reports.slice().reverse(), [reports]);
-  const mll = reversedReports.map((item) => ({
+  const reversedReports = useMemo(() => reports?.slice().reverse(), [reports]);
+
+  if (!reversedReports || !cap) {
+    return (
+      <div className="h-full flex gap-4">
+        <Card className="flex-1">
+          <div className="w-full h-full flex flex-col">
+            <Text size="3" className="font-bold mb-2">
+              Profitability
+            </Text>
+            <Skeleton>
+              <div className="flex-1 w-full p-2" />
+            </Skeleton>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  const mll = reversedReports?.map((item) => ({
     year: item.year,
     value: item.data['XSMLL'],
   }));
-  const jlr = reversedReports.map((item) => ({
+  const jlr = reversedReports?.map((item) => ({
     year: item.year,
     value: item.data['XSJLL'],
   }));
-  const roe = reversedReports.map((item) => ({
+  const roe = reversedReports?.map((item) => ({
     year: item.year,
     value: item.data['ROEKCJQ'],
   }));
-  const fcf = reversedReports.map((item) => ({
+  const fcf = reversedReports?.map((item) => ({
     year: item.year,
     value: (computeSimpleCFC([item], 1) / cap) * 100,
   }));

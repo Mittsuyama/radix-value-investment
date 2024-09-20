@@ -2,10 +2,10 @@ import { memo, useState } from 'react';
 import cls from 'classnames';
 import { useAtom, useAtomValue } from 'jotai';
 import { useAsyncEffect } from 'ahooks';
-import { Spinner, Badge, Button, DropdownMenu } from '@radix-ui/themes';
-import { getBatchStocksWithReportsDetailRequest, getBusinessRequest } from '@renderer/api';
+import { Spinner, Badge, Button, DropdownMenu, Skeleton } from '@radix-ui/themes';
+import { getBatchStocksWithReportsDetailRequest } from '@renderer/api';
 import { reportMonthAtom, stockBaseInfoListResourceAtom } from '@renderer/models';
-import { BalanceSheetType, BizItem, ReportMonth, StockWithReportsDetail } from '@renderer/types';
+import { BalanceSheetType, ReportMonth, StockWithReportsDetail } from '@renderer/types';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
 import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
 import { BalanceSheetChartCard } from '../BalanceSheetChartCard/BalanceSheetChartCard';
@@ -33,7 +33,6 @@ interface StockDetailProps {
 
 export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
   const [info, setInfo] = useState<StockWithReportsDetail | null>(null);
-  const [business, setBusiness] = useState<Array<BizItem> | null>(null);
   const [maskLoading, setMaskLoading] = useState(true);
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
   const [month, setMonth] = useAtom(reportMonthAtom);
@@ -41,39 +40,40 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
   useAsyncEffect(async () => {
     try {
       setMaskLoading(true);
-      const [infoRes, bizRes] = await Promise.all([
-        getBatchStocksWithReportsDetailRequest(
-          {
-            ids: [stockId],
-            years: 5,
-            month,
-          },
-          resource,
-        ),
-        getBusinessRequest(stockId),
-      ]);
+      const infoRes = await getBatchStocksWithReportsDetailRequest(
+        {
+          ids: [stockId],
+          years: 5,
+          month,
+        },
+        resource,
+      );
       setInfo(infoRes[0]);
-      setBusiness(bizRes.bizListByProduct);
     } finally {
       setMaskLoading(false);
     }
   }, [stockId, month]);
 
-  if (!info || !business) {
-    return (
-      <div className="p-6">
-        <Spinner />
-      </div>
-    );
-  }
-
   return (
     <div className="relative w-full h-full overflow-auto">
       <div className={cls('p-6 relative', { 'opacity-25': maskLoading })}>
-        <div className="mb-4 flex justify-between items-center">
+        <div className="mb-4 flex justify-between items-center gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <div className="text-xl font-bold">{info.name}</div>
-            <Badge>{info.industry}</Badge>
+            {info ? (
+              <>
+                <div className="text-xl font-bold">{info.name}</div>
+                <Badge>{info.industry}</Badge>
+              </>
+            ) : (
+              <>
+                <Skeleton>
+                  <div className="text-xl font-bold">Name</div>
+                </Skeleton>
+                <Skeleton>
+                  <Badge>industry</Badge>
+                </Skeleton>
+              </>
+            )}
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
                 <Button variant="ghost" style={{ alignItems: 'center', gap: 6 }}>
@@ -96,6 +96,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             <Button
               variant="outline"
               onClick={() =>
+                info &&
                 window.open(
                   `https://emweb.securities.eastmoney.com/pc_hsf10/pages/index.html?type=web&code=${info.stockExchangeName}${info.code}#/cwfx`,
                 )
@@ -106,7 +107,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             <Button
               variant="outline"
               onClick={() =>
-                window.open(`https://data.eastmoney.com/notices/stock/${info.code}.html`)
+                info && window.open(`https://data.eastmoney.com/notices/stock/${info.code}.html`)
               }
             >
               Annoucement
@@ -116,29 +117,29 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
         <div className="w-full h-80 mb-4 flex gap-4">
           <div className="flex-[6]">
             <Profitability
-              key={`${info.id}-${month}`}
-              reports={info.reports}
-              cap={info.totalMarketCap}
+              key={`${stockId || stockId}-${month}`}
+              reports={info?.reports}
+              cap={info?.totalMarketCap}
             />
           </div>
           <div className="flex-[4]">
-            <Biz key={`${info.id}-${month}`} items={business} />
+            <Biz loading={maskLoading} key={`${stockId}-${month}`} stockId={stockId} />
           </div>
           <div className="flex-[5]">
-            <Cost key={`${info.id}-${month}`} reports={info.reports} />
+            <Cost key={`${stockId}-${month}`} reports={info?.reports} />
           </div>
         </div>
         <div className="w-full h-80 mb-4 flex gap-4">
           {balanceSheets.slice(0, 2).map((type) => (
-            <div key={`${info.id}-${type}-${month}`} className="flex-1">
-              <BalanceSheetChartCard type={type} reports={info.reports} />
+            <div key={`${stockId}-${type}-${month}`} className="flex-1">
+              <BalanceSheetChartCard type={type} reports={info?.reports} />
             </div>
           ))}
         </div>
         <div className="w-full h-80 mb-4 flex gap-4">
           {balanceSheets.slice(2, 4).map((type) => (
-            <div key={`${info.id}-${type}-${month}`} className="flex-1">
-              <BalanceSheetChartCard type={type} reports={info.reports} />
+            <div key={`${stockId}-${type}-${month}`} className="flex-1">
+              <BalanceSheetChartCard type={type} reports={info?.reports} />
             </div>
           ))}
         </div>

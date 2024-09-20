@@ -1,17 +1,27 @@
 import { renderToString } from 'react-dom/server';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { Card, Text } from '@radix-ui/themes';
+import { Card, Skeleton, Text } from '@radix-ui/themes';
 import ReactEcharts from 'echarts-for-react';
 import { BizItem } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
 import { ColorMap } from '@renderer/constants';
+import { useAsyncEffect } from 'ahooks';
+import { getBusinessRequest } from '@renderer/api';
 
 interface BizProps {
-  items: BizItem[];
+  stockId: string;
+  loading?: boolean;
 }
 
-export const Biz = memo<BizProps>(({ items }) => {
+export const Biz = memo<BizProps>(({ stockId, loading }) => {
+  const [items, setItems] = useState<BizItem[] | null>(null);
+
+  useAsyncEffect(async () => {
+    const res = await getBusinessRequest(stockId);
+    setItems(res.bizListByProduct);
+  }, [stockId]);
+
   const theme = useAtomValue(themeAtom);
   const color = useAtomValue(colorAtom);
   const colors = useMemo(() => ColorMap[color].slice().reverse(), [color]);
@@ -19,7 +29,7 @@ export const Biz = memo<BizProps>(({ items }) => {
   const sortedItems = useMemo(
     () =>
       items
-        .filter((item) => item.MBI_RATIO > 0.05)
+        ?.filter((item) => item.MBI_RATIO > 0.05)
         .sort((a, b) => {
           if (a.GROSS_RPOFIT_RATIO && b.GROSS_RPOFIT_RATIO) {
             return b.GROSS_RPOFIT_RATIO - a.GROSS_RPOFIT_RATIO;
@@ -29,6 +39,9 @@ export const Biz = memo<BizProps>(({ items }) => {
     [items],
   );
   const rest = useMemo<Array<BizItem>>(() => {
+    if (!items) {
+      return [];
+    }
     const sm = items.filter((item) => item.MBI_RATIO <= 0.05);
     if (!sm.length) {
       return [];
@@ -48,7 +61,23 @@ export const Biz = memo<BizProps>(({ items }) => {
       },
     ];
   }, [items]);
-  const usableItems = useMemo(() => [...sortedItems, ...rest], [sortedItems, rest]);
+
+  if (!sortedItems || loading) {
+    return (
+      <Card className="h-full flex flex-col">
+        <div className="w-full h-full flex flex-col">
+          <Text size="3" className="font-bold mb-2">
+            Business Proportion
+          </Text>
+          <Skeleton>
+            <div className="flex-1 w-full p-2" />
+          </Skeleton>
+        </div>
+      </Card>
+    );
+  }
+
+  const usableItems = [...sortedItems, ...rest];
 
   return (
     <Card className="h-full flex flex-col">

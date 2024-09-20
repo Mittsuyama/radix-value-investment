@@ -1,6 +1,5 @@
 import { memo, useMemo } from 'react';
 import cls from 'classnames';
-import { useHistory } from 'react-router-dom';
 import { useAtom, useAtomValue } from 'jotai';
 import { Table, Link, Tooltip } from '@radix-ui/themes';
 import { TriangleUpIcon, TriangleDownIcon, CaretSortIcon } from '@radix-ui/react-icons';
@@ -119,7 +118,6 @@ interface StockDetaiTableProps {
 }
 
 export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }) => {
-  const history = useHistory();
   const customedInfoList = useAtomValue(customedStockInfoListAtom);
 
   const [sort, setSort] = useAtom(sortConfigAtom);
@@ -234,12 +232,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               <Table.RowHeaderCell>{index + 1}</Table.RowHeaderCell>
               <Table.Cell>{record.id}</Table.Cell>
               <Table.Cell>
-                <Link
-                  weight="bold"
-                  highContrast
-                  href="#"
-                  onClick={() => history.push(`/analyst?id=${record.id}`)}
-                >
+                <Link weight="bold" highContrast href={`#/analyst?id=${record.id}`}>
                   {record.name}
                 </Link>
               </Table.Cell>

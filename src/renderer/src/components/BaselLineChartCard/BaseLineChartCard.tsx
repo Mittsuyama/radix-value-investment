@@ -3,7 +3,7 @@ import { useMemoizedFn } from 'ahooks';
 import { memo, ReactNode, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import ReactEcharts from 'echarts-for-react';
-import { Card, Text } from '@radix-ui/themes';
+import { Card, Text, Skeleton } from '@radix-ui/themes';
 import { ACCOUNT_ITEM, ColorMap } from '@renderer/constants';
 import { FinancialReport } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
@@ -14,7 +14,7 @@ interface BaseLineChartCardProps {
   totals?: number[];
   accountItemKeys: Array<keyof typeof ACCOUNT_ITEM>;
   minPercent?: number;
-  reports: FinancialReport[];
+  reports?: FinancialReport[];
   totalName?: string;
 }
 
@@ -34,18 +34,20 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
     const theme = useAtomValue(themeAtom);
     const color = useAtomValue(colorAtom);
     const colors = useMemo(() => ColorMap[color].slice().reverse(), [color]);
-    const reverseReports = useMemo(() => reports.slice().reverse(), [reports]);
+    const reverseReports = useMemo(() => reports?.slice().reverse(), [reports]);
     const reverseTotals = useMemo(() => totals?.slice().reverse(), [totals]);
 
     const { series } = useMemo(
       () =>
-        getLineData({
-          reports: reverseReports,
-          accountItemKeys,
-          totals: reverseTotals,
-          totalName,
-          minPercent,
-        }),
+        reverseReports
+          ? getLineData({
+              reports: reverseReports,
+              accountItemKeys,
+              totals: reverseTotals,
+              totalName,
+              minPercent,
+            })
+          : { series: undefined },
       [reverseReports, accountItemKeys, minPercent, totalName, reverseTotals],
     );
 
@@ -73,6 +75,21 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
         </table>,
       );
     });
+
+    if (!reverseReports || !series) {
+      return (
+        <Card className="h-full flex flex-col">
+          <div className="w-full h-full flex flex-col">
+            <Text size="3" className="font-bold mb-2">
+              {title}
+            </Text>
+            <Skeleton>
+              <div className="flex-1 w-full p-2"></div>
+            </Skeleton>
+          </div>
+        </Card>
+      );
+    }
 
     return (
       <Card className="h-full flex flex-col">

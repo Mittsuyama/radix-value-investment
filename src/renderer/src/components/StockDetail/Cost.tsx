@@ -8,13 +8,13 @@ const getNumberFromReport = (report: FinancialReport, key: keyof typeof ACCOUNT_
 };
 
 interface CostProps {
-  reports: FinancialReport[];
+  reports?: FinancialReport[];
 }
 
 export const Cost = memo<CostProps>(({ reports }) => {
   const totals = useMemo(
     () =>
-      reports.map(
+      reports?.map(
         (report) =>
           getNumberFromReport(report, 'l-yysr-营业收入') -
           getNumberFromReport(report, 'l-yycb-营业成本'),
