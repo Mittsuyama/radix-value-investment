@@ -1,5 +1,9 @@
 import { ServiceError } from '@renderer/types';
 
+export const fetchFileText = async (filepath: string) => {
+  return await window.electron.ipcRenderer.invoke('fetchFileText', filepath);
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const get = async (url: string, params?: any) => {
   const res = await window.electron.ipcRenderer.invoke('axios', 'get', url, params);

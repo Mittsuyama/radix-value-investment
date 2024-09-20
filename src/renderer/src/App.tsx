@@ -16,7 +16,7 @@ function App(): JSX.Element {
 
   useMount(async () => {
     const res = await getStockBaseInfoListByFilterRequeset({});
-    res.sort((a, b) => b.ttmROE - a.ttmROE);
+    res.sort((a, b) => b.totalMarketCap - a.totalMarketCap);
     setResource(res);
   });
 
@@ -33,7 +33,7 @@ function App(): JSX.Element {
             <Route exact path="/analyst" component={Analyst} />
             <Route exact path="/filter" component={Filter} />
             <Route exact path="/goodluck" component={GoodLuck} />
-            <Route exact path="/">
+            <Route path="">
               <Redirect to="/dashboard" />
             </Route>
           </Switch>

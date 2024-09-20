@@ -135,9 +135,9 @@ export const TopMenu = memo(() => {
 
   return (
     <div className="w-full h-14 flex items-center gap-5 px-6">
-      <div className="flex items-center gap-2 text-x font-bold">
-        <BarChartIcon style={{ color: 'var(--accent-9)', width: 18, height: 18 }} />
-        Via
+      <div className="flex items-center gap-2 text-x font-bold text-accent-10">
+        <BarChartIcon style={{ width: 18, height: 18 }} />
+        RVI
       </div>
       <Separator orientation="vertical" />
       <div className="flex items-center gap-2">

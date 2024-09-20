@@ -7,6 +7,7 @@ import {
   ThemeType,
 } from '@renderer/types';
 import { ColorType } from '@renderer/constants';
+import { atom } from 'jotai';
 
 enum StorageKey {
   CUSTOMED_STOCK_INFO_LIST = 'customed-stock-info-list',
@@ -31,12 +32,9 @@ export const customedStockInfoListAtom = atomWithStorage<CustomedStockInfo[]>(
   undefined,
   { getOnInit: true },
 );
-export const stockBaseInfoListResourceAtom = atomWithStorage<Array<StockBaseInfo> | undefined>(
-  'stock-base-info-list-resource',
-  undefined,
-  undefined,
-  { getOnInit: true },
-);
+
+export const stockBaseInfoListResourceAtom = atom<Array<StockBaseInfo> | undefined>(undefined);
+
 export const reportMonthAtom = atomWithStorage<ReportMonth>('report-month', 12, undefined, {
   getOnInit: true,
 });

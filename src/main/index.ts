@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { createStoreIpcHandle, createAxiosIpcHandle } from './ipc';
+import { createStoreIpcHandle, createAxiosIpcHandle, createFileIpcHandle } from './ipc';
 import icon from '../../resources/icon.png?asset';
 
 function createWindow(): void {
@@ -14,8 +14,8 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
+      sandbox: false,
+    },
   });
 
   mainWindow.on('ready-to-show', () => {
@@ -56,6 +56,7 @@ app.whenReady().then(() => {
   createWindow();
 
   createAxiosIpcHandle();
+  createFileIpcHandle();
   createStoreIpcHandle(app);
 
   app.on('activate', function () {

@@ -1,4 +1,4 @@
-import { memo, useRef, useEffect, ChangeEventHandler } from 'react';
+import { memo, useRef, useEffect, ChangeEventHandler, useState } from 'react';
 import { useMemoizedFn } from 'ahooks';
 import { atom, useAtom, useAtomValue } from 'jotai';
 import { Spinner, Button } from '@radix-ui/themes';
@@ -11,6 +11,7 @@ import {
   stockBaseInfoListResourceAtom,
 } from '@renderer/models';
 import { StockDetaiTable } from '@renderer/components/StockDetailTable';
+import { fetchFileText } from '@renderer/api/request';
 
 const listAtom = atom<Array<StockWithReportsDetail> | null>(null);
 
@@ -19,15 +20,15 @@ export const Dashboard = memo(() => {
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
 
   const [list, setList] = useAtom(listAtom);
+  const [reloading, setReloading] = useState(false);
   const fetchingRef = useRef(false);
   const loadFileInputRef = useRef<HTMLInputElement>(null);
   const downloadFileButtonRef = useRef<HTMLAnchorElement>(null);
 
-  const refresh = useMemoizedFn(async () => {
+  const init = useMemoizedFn(async () => {
     if (!favList.length) {
       return;
     }
-
     // 增加项目再加载
     if (!list || favList.some((fav) => !list.some((item) => item.id === fav))) {
       if (!fetchingRef.current) {
@@ -46,27 +47,41 @@ export const Dashboard = memo(() => {
     }
   });
 
+  const onRefresh = useMemoizedFn(async () => {
+    setReloading(true);
+    try {
+      if (!fetchingRef.current) {
+        fetchingRef.current = true;
+        const res = await getBatchStocksWithReportsDetailRequest({
+          ids: favList,
+          years: 3,
+        });
+        const sortedList = res.slice().sort((a, b) => b.totalMarketCap - a.totalMarketCap);
+        setList(sortedList);
+        fetchingRef.current = false;
+      }
+    } finally {
+      setReloading(false);
+    }
+  });
+
   useEffect(() => {
-    refresh();
-  }, [refresh, favList]);
+    init();
+  }, [init, favList]);
 
   const onFileUpload = useMemoizedFn<ChangeEventHandler<HTMLInputElement>>(async (e) => {
     if (e.target.files?.length) {
-      const fileReader = new FileReader();
-      fileReader.readAsText(e.target.files[0], 'UTF-8');
-      fileReader.onload = (e) => {
-        if (e.target?.result && typeof e.target.result === 'string') {
-          try {
-            const json = JSON.parse(e.target.result || '');
-            Object.entries(json).forEach(([key, value]) => {
-              localStorage.setItem(key, JSON.stringify(value));
-            });
-            location.reload();
-          } catch {
-            // do nothing
-          }
-        }
-      };
+      const filepath = e.target.files[0].path;
+      const text = await fetchFileText(filepath);
+      try {
+        const json = JSON.parse(text || '');
+        Object.entries(json).forEach(([key, value]) => {
+          localStorage.setItem(key, JSON.stringify(value));
+        });
+        location.reload();
+      } catch {
+        // do nothing
+      }
     }
   });
 
@@ -111,6 +126,9 @@ export const Dashboard = memo(() => {
             >
               download
             </a>
+            <Button loading={reloading} onClick={onRefresh} variant="solid">
+              Reload
+            </Button>
             <Button onClick={() => loadFileInputRef.current?.click()} variant="surface">
               Import Datas
             </Button>
