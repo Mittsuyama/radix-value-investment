@@ -369,8 +369,17 @@ export const LR_ITEM_TO_KEY = {
   'l-zhsyze-综合收益总额': 'TOTAL_COMPRE_INCOME',
 };
 
+export const LEADING_ITEM_TO_KEY = {
+  'leading-yszkzzts-应收账款周转天数': 'YSZKZZTS',
+  'leading-chzzts-存货周转天数': 'CHZZTS',
+  'leading-xsmll-销售毛利率': 'XSMLL',
+  'leading-xsjll-销售净利率': 'XSJLL',
+  'leading-kfjqroe-扣非加权ROE': 'ROEKCJQ',
+};
+
 export const ACCOUNT_ITEM = {
   ...ZCFZ_ITEM_TO_KEY,
   ...LR_ITEM_TO_KEY,
   ...XJLL_ITEM_TO_KEY,
+  ...LEADING_ITEM_TO_KEY,
 };

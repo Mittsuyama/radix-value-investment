@@ -14,6 +14,7 @@ export interface CustomedStockInfo {
   id: string;
   latestBuyDate?: string;
   latestBuyPrice?: number;
+  review?: string;
 }
 
 export type SortKey = 'LTPRC' | 'GLTD' | 'score' | 'FCF_avg_3' | 'CAP';

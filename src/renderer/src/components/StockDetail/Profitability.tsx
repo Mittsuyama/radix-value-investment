@@ -4,7 +4,7 @@ import ReactEcharts from 'echarts-for-react';
 import { Card, Skeleton, Text } from '@radix-ui/themes';
 import { FinancialReport } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
-import { ColorMap } from '@renderer/constants';
+import { ACCOUNT_ITEM, getChartColors, getColorIndex } from '@renderer/constants';
 import { computeSimpleCFC } from '@renderer/utils';
 
 interface ProfitabilityProps {
@@ -17,7 +17,7 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
   const { reports, cap } = props;
   const theme = useAtomValue(themeAtom);
   const color = useAtomValue(colorAtom);
-  const colors = useMemo(() => ColorMap[color].slice().reverse(), [color]);
+  const colors = useMemo(() => getChartColors(color), [color]);
 
   const reversedReports = useMemo(() => reports?.slice().reverse(), [reports]);
 
@@ -25,7 +25,7 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
     return (
       <div className="h-full flex gap-4">
         <Card className="flex-1">
-          <div className="w-full h-full flex flex-col">
+          <div className="w-full h-full flex flex-col px-2">
             <Text size="3" className="font-bold mb-2">
               Profitability
             </Text>
@@ -40,15 +40,15 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
 
   const mll = reversedReports?.map((item) => ({
     year: item.year,
-    value: item.data['XSMLL'],
+    value: item.data[ACCOUNT_ITEM['leading-xsmll-销售毛利率']],
   }));
   const jlr = reversedReports?.map((item) => ({
     year: item.year,
-    value: item.data['XSJLL'],
+    value: item.data[ACCOUNT_ITEM['leading-xsjll-销售净利率']],
   }));
   const roe = reversedReports?.map((item) => ({
     year: item.year,
-    value: item.data['ROEKCJQ'],
+    value: item.data[ACCOUNT_ITEM['leading-kfjqroe-扣非加权ROE']],
   }));
   const fcf = reversedReports?.map((item) => ({
     year: item.year,
@@ -76,7 +76,7 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
   return (
     <div className="h-full flex gap-4">
       <Card className="flex-1">
-        <div className="w-full h-full flex flex-col">
+        <div className="w-full h-full flex flex-col px-2">
           <Text size="3" className="font-bold mb-2">
             Profitability
           </Text>
@@ -98,7 +98,7 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
                   data: list.map((item, index) => ({
                     name: item.name,
                     itemStyle: {
-                      color: colors[index],
+                      color: colors[getColorIndex(index, colors.length)],
                     },
                   })),
                 },
@@ -117,9 +117,12 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
                   data: data.map((item) => ({
                     value: item.value,
                     itemStyle: {
-                      color: colors[index],
+                      color: colors[getColorIndex(index, colors.length)],
                     },
                   })),
+                  emphasis: {
+                    disabled: true,
+                  },
                 })),
               }}
             />

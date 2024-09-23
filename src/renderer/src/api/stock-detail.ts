@@ -63,16 +63,9 @@ export const getBatchStocksWithReportsDetailRequest = async (
 
   const baseInfoList = filterStocks(res, params);
 
-  console.log(`${baseInfoList.length} financial reports fetching...`);
-  let count = 0;
-
   const reportsList = await Promise.all(
     baseInfoList.map(async (item) => {
       const res = await getTreeFinancialReportsRequest(item.id, params.years + 1, [month]);
-      count++;
-      if (count % 10 === 0) {
-        console.log('reports fetching complete:', count);
-      }
       return res;
     }),
   );

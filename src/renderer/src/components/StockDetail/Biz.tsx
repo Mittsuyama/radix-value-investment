@@ -1,13 +1,14 @@
 import { renderToString } from 'react-dom/server';
 import { memo, useMemo, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { Card, Skeleton, Text } from '@radix-ui/themes';
+import { Card, Text, Spinner, HoverCard, Table } from '@radix-ui/themes';
 import ReactEcharts from 'echarts-for-react';
 import { BizItem } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
-import { ColorMap } from '@renderer/constants';
+import { getChartColors, getColorIndex } from '@renderer/constants';
 import { useAsyncEffect } from 'ahooks';
 import { getBusinessRequest } from '@renderer/api';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
 
 interface BizProps {
   stockId: string;
@@ -24,20 +25,26 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
 
   const theme = useAtomValue(themeAtom);
   const color = useAtomValue(colorAtom);
-  const colors = useMemo(() => ColorMap[color].slice().reverse(), [color]);
+  const colors = useMemo(() => getChartColors(color), [color]);
 
   const sortedItems = useMemo(
     () =>
       items
         ?.filter((item) => item.MBI_RATIO > 0.05)
-        .sort((a, b) => {
-          if (a.GROSS_RPOFIT_RATIO && b.GROSS_RPOFIT_RATIO) {
-            return b.GROSS_RPOFIT_RATIO - a.GROSS_RPOFIT_RATIO;
-          }
-          return b.MBI_RATIO - a.MBI_RATIO;
-        }),
+        ?.filter((item) => !item.ITEM_NAME.startsWith('其中:'))
+        .slice()
+        .sort((a, b) => (b.MBI_RATIO || -1) - (a.MBI_RATIO || -1)),
     [items],
   );
+  const moreItems = useMemo(
+    () =>
+      items
+        ?.filter((item) => !sortedItems?.some((si) => si.ITEM_NAME === item.ITEM_NAME))
+        .slice()
+        .sort((a, b) => (b.MBI_RATIO || -1) - (a.MBI_RATIO || -1)),
+    [sortedItems, items],
+  );
+  console.log(moreItems);
   const rest = useMemo<Array<BizItem>>(() => {
     if (!items) {
       return [];
@@ -65,13 +72,13 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
   if (!sortedItems || loading) {
     return (
       <Card className="h-full flex flex-col">
-        <div className="w-full h-full flex flex-col">
+        <div className="w-full h-full flex flex-col px-2">
           <Text size="3" className="font-bold mb-2">
             Business Proportion
           </Text>
-          <Skeleton>
-            <div className="flex-1 w-full p-2" />
-          </Skeleton>
+          <div className="w-full flex-1 flex justify-center items-center">
+            <Spinner />
+          </div>
         </div>
       </Card>
     );
@@ -81,10 +88,46 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="w-full h-full flex flex-col">
-        <Text size="3" className="font-bold mb-2">
-          Business Proportion
-        </Text>
+      <div className="w-full h-full flex flex-col px-2">
+        <div className="flex items-center gap-2 mb-2">
+          <Text size="3" className="font-bold">
+            Business Proportion
+          </Text>
+          {moreItems ? (
+            <HoverCard.Root>
+              <HoverCard.Trigger>
+                <div className="flex items-center gap-1 text-sm text-gray-10 cursor-pointer">
+                  More Info
+                  <InfoCircledIcon />
+                </div>
+              </HoverCard.Trigger>
+              <HoverCard.Content>
+                <Table.Root variant="surface">
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Proportion</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>GPR</Table.ColumnHeaderCell>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {moreItems.map((item) => (
+                      <Table.Row key={item.ITEM_NAME} className="hover:bg-accent-2">
+                        <Table.RowHeaderCell>{item.ITEM_NAME}</Table.RowHeaderCell>
+                        <Table.Cell>{(item.MBI_RATIO * 100).toFixed(2)}%</Table.Cell>
+                        <Table.Cell>
+                          {item.GROSS_RPOFIT_RATIO ? (
+                            <span> (GPR: {(item.GROSS_RPOFIT_RATIO * 100).toFixed(2)}%)</span>
+                          ) : null}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </HoverCard.Content>
+            </HoverCard.Root>
+          ) : null}
+        </div>
         <div className="flex-1 w-full p-2">
           <ReactEcharts
             style={{ width: '100%', height: '100%' }}
@@ -99,7 +142,7 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
                     <div className="flex items-center gap-3">
                       <div
                         className=" w-[10px] h-[10px] rounded-lg"
-                        style={{ background: colors[dataIndex] }}
+                        style={{ background: colors[getColorIndex(dataIndex, colors.length)] }}
                       />
                       <div className="font-bold">{item.ITEM_NAME}</div>
                       <div>
@@ -120,7 +163,12 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
                     value: item.MBI_RATIO,
                     name: item.ITEM_NAME,
                     itemStyle: {
-                      color: colors[index],
+                      color: colors[getColorIndex(index, colors.length)],
+                    },
+                    emphasis: {
+                      itemStyle: {
+                        color: colors[getColorIndex(index, colors.length)],
+                      },
                     },
                   })),
                   label: {

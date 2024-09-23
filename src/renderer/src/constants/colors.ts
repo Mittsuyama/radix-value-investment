@@ -61,3 +61,21 @@ export type ColorType = keyof typeof Palette;
 export const ColorMap = Object.fromEntries(
   Object.entries(Palette).map(([key, value]) => [key, [...Object.values(value)]]),
 ) as Record<ColorType, string[]>;
+
+export const getColorIndex = (index: number, colorLength: number) => {
+  const times = Math.floor((index * 2) / colorLength);
+  return Math.floor((index * 2 + times) % colorLength);
+};
+
+export const getChartColors = (color: ColorType) => {
+  const colorList = Object.values(ColorMap);
+  let index = colorList.findIndex((item) => item[0] === ColorMap[color][0]);
+  if (index === -1) {
+    index = 0;
+  }
+  return [
+    ...colorList[index].slice().reverse(),
+    // ...colorList[Math.floor((index + 1) % colorList.length)].slice().reverse().slice(2, 8),
+    // ...colorList[Math.floor((index + 2) % colorList.length)].slice().reverse().slice(4, 9),
+  ];
+};

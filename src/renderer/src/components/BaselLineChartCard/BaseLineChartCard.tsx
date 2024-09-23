@@ -4,17 +4,18 @@ import { memo, ReactNode, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import ReactEcharts from 'echarts-for-react';
 import { Card, Text, Skeleton } from '@radix-ui/themes';
-import { ACCOUNT_ITEM, ColorMap } from '@renderer/constants';
+import { ACCOUNT_ITEM, getChartColors, getColorIndex } from '@renderer/constants';
 import { FinancialReport } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
 import { ChartDataItem, formatFinancialNumber, getLineData } from '@renderer/utils';
 
 interface BaseLineChartCardProps {
   title: ReactNode;
-  totals?: number[];
-  accountItemKeys: Array<keyof typeof ACCOUNT_ITEM>;
-  minPercent?: number;
   reports?: FinancialReport[];
+  accountItemKeys: Array<keyof typeof ACCOUNT_ITEM>;
+
+  totals?: number[];
+  minPercent?: number;
   totalName?: string;
 }
 
@@ -33,7 +34,7 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
   ({ title, totals, totalName, accountItemKeys, minPercent, reports }) => {
     const theme = useAtomValue(themeAtom);
     const color = useAtomValue(colorAtom);
-    const colors = useMemo(() => ColorMap[color].slice().reverse(), [color]);
+    const colors = useMemo(() => getChartColors(color), [color]);
     const reverseReports = useMemo(() => reports?.slice().reverse(), [reports]);
     const reverseTotals = useMemo(() => totals?.slice().reverse(), [totals]);
 
@@ -66,9 +67,15 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
                     <div className="w-[10px] h-[10px] rounded-lg" style={{ background: color }} />
                   </td>
                   <td>{seriesName}</td>
-                  <td className="font-bold text-gray-12">{percent.toFixed(2) + '%'}</td>
-                  <td>{formatFinancialNumber(value)}</td>
-                  <td>{percentToBase.toFixed(2) + '%'}</td>
+                  {totals ? (
+                    <>
+                      <td className="font-bold text-gray-12">{percent.toFixed(2) + '%'}</td>
+                      <td>{formatFinancialNumber(value)}</td>
+                      <td>{percentToBase.toFixed(2) + '%'}</td>
+                    </>
+                  ) : (
+                    <td className="font-bold text-gray-12">{formatFinancialNumber(value)}</td>
+                  )}
                 </tr>
               );
             })}
@@ -79,7 +86,7 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
     if (!reverseReports || !series) {
       return (
         <Card className="h-full flex flex-col">
-          <div className="w-full h-full flex flex-col">
+          <div className="w-full h-full flex flex-col px-2">
             <Text size="3" className="font-bold mb-2">
               {title}
             </Text>
@@ -93,7 +100,7 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
 
     return (
       <Card className="h-full flex flex-col">
-        <div className="w-full h-full flex flex-col">
+        <div className="w-full h-full flex flex-col px-2">
           <Text size="3" className="font-bold mb-2">
             {title}
           </Text>
@@ -130,15 +137,17 @@ export const BaseLineChartCard = memo<BaseLineChartCardProps>(
                     value: data.percentToBase || undefined,
                     origin: {
                       ...data,
-                      color: colors[index],
+                      color: colors[getColorIndex(index, colors.length)],
                     },
                   })),
                   itemStyle: {
-                    color: colors[index],
+                    color: colors[getColorIndex(index, colors.length)],
                   },
                   lineStyle: {
-                    opacity: 0.5,
-                    color: colors[index],
+                    color: colors[getColorIndex(index, colors.length)],
+                  },
+                  emphasis: {
+                    disabled: true,
                   },
                 })),
               }}

@@ -1,17 +1,29 @@
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import cls from 'classnames';
 import { useAtom, useAtomValue } from 'jotai';
 import { useAsyncEffect } from 'ahooks';
-import { Spinner, Badge, Button, DropdownMenu, Skeleton } from '@radix-ui/themes';
+import { Spinner, Badge, Button, DropdownMenu, Skeleton, HoverCard } from '@radix-ui/themes';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { getBatchStocksWithReportsDetailRequest } from '@renderer/api';
-import { reportMonthAtom, stockBaseInfoListResourceAtom } from '@renderer/models';
+import {
+  customedStockInfoListAtom,
+  reportMonthAtom,
+  stockBaseInfoListResourceAtom,
+} from '@renderer/models';
 import { BalanceSheetType, ReportMonth, StockWithReportsDetail } from '@renderer/types';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
 import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
-import { BalanceSheetChartCard } from '../BalanceSheetChartCard/BalanceSheetChartCard';
+import { formatFinancialNumber } from '@renderer/utils';
+import { BalanceSheetChartCard } from '@renderer/components/BalanceSheetChartCard';
+import {
+  CashFlowStatementCard,
+  CashFlowStatementType,
+} from '@renderer/components/CashFlowStatementCard';
 import { Profitability } from './Profitability';
 import { Cost } from './Cost';
 import { Biz } from './Biz';
+import { Base } from './Base';
+import { BaseLineChartCard } from '../BaselLineChartCard';
 
 const ReportMonthList: Array<{ value: ReportMonth; label: string }> = [
   { value: 3, label: 'First Quarter (Month: 3)' },
@@ -19,6 +31,8 @@ const ReportMonthList: Array<{ value: ReportMonth; label: string }> = [
   { value: 9, label: 'Third Quarter (Month: 9)' },
   { value: 12, label: 'Annual (Month: 12)' },
 ];
+
+const cashFlowSheets: CashFlowStatementType[] = ['operate', 'invest', 'finance'];
 
 const balanceSheets: BalanceSheetType[] = [
   'current-asset',
@@ -32,10 +46,17 @@ interface StockDetailProps {
 }
 
 export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
-  const [info, setInfo] = useState<StockWithReportsDetail | null>(null);
   const [maskLoading, setMaskLoading] = useState(true);
-  const resource = useAtomValue(stockBaseInfoListResourceAtom);
   const [month, setMonth] = useAtom(reportMonthAtom);
+
+  const customedInfoList = useAtomValue(customedStockInfoListAtom);
+  const resource = useAtomValue(stockBaseInfoListResourceAtom);
+  const [info, setInfo] = useState<StockWithReportsDetail | null>(null);
+
+  const customedInfo = useMemo(
+    () => customedInfoList.find((item) => item.id === stockId),
+    [customedInfoList, stockId],
+  );
 
   useAsyncEffect(async () => {
     try {
@@ -57,7 +78,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
   return (
     <div className="relative w-full h-full overflow-auto">
       <div className={cls('p-6 relative', { 'opacity-25': maskLoading })}>
-        <div className="mb-4 flex justify-between items-center gap-4 flex-wrap">
+        <div className="mb-2 flex justify-between items-center gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             {info ? (
               <>
@@ -92,7 +113,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
           </div>
           <div className="flex items-center gap-4">
             <StaredIconButton id={stockId} />
-            <CustomedStockInfoEditButton variant="outline" id={stockId} />
+            <CustomedStockInfoEditButton key={stockId} variant="outline" id={stockId} />
             <Button
               variant="outline"
               onClick={() =>
@@ -114,6 +135,36 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             </Button>
           </div>
         </div>
+        {info ? (
+          <div className="flex items-center gap-4 mb-4 text-gray-10">
+            <div>
+              CAP: <span className="font-bold">{formatFinancialNumber(info.totalMarketCap)}</span>
+            </div>
+            <div>
+              PE: <span className="font-bold">{info.ttmPE.toFixed(2)}</span>
+            </div>
+            <div>
+              ROE: <span className="font-bold">{info.ttmROE.toFixed(2)}%</span>
+            </div>
+            {customedInfo?.review ? (
+              <HoverCard.Root>
+                <HoverCard.Trigger>
+                  <div className="cursor-pointer flex items-center gap-1">
+                    <InfoCircledIcon />
+                    Review
+                  </div>
+                </HoverCard.Trigger>
+                <HoverCard.Content>
+                  <pre className="w-full whitespace-normal">{customedInfo.review}</pre>
+                </HoverCard.Content>
+              </HoverCard.Root>
+            ) : null}
+          </div>
+        ) : (
+          <Skeleton>
+            <div className="mb-4 w-[40%]">ROE</div>
+          </Skeleton>
+        )}
         <div className="w-full h-80 mb-4 flex gap-4">
           <div className="flex-[6]">
             <Profitability
@@ -123,25 +174,44 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             />
           </div>
           <div className="flex-[4]">
-            <Biz loading={maskLoading} key={`${stockId}-${month}`} stockId={stockId} />
+            <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
           </div>
           <div className="flex-[5]">
             <Cost key={`${stockId}-${month}`} reports={info?.reports} />
           </div>
         </div>
         <div className="w-full h-80 mb-4 flex gap-4">
-          {balanceSheets.slice(0, 2).map((type) => (
+          {balanceSheets.slice(0, 4).map((type) => (
             <div key={`${stockId}-${type}-${month}`} className="flex-1">
               <BalanceSheetChartCard type={type} reports={info?.reports} />
             </div>
           ))}
         </div>
-        <div className="w-full h-80 mb-4 flex gap-4">
+        {/* <div className="w-full h-80 mb-4 flex gap-4">
           {balanceSheets.slice(2, 4).map((type) => (
             <div key={`${stockId}-${type}-${month}`} className="flex-1">
               <BalanceSheetChartCard type={type} reports={info?.reports} />
             </div>
           ))}
+        </div> */}
+        <div className="w-full h-80 mb-4 flex gap-4">
+          {cashFlowSheets.map((type) => (
+            <div key={`${stockId}-${type}-${month}`} className="flex-1">
+              <CashFlowStatementCard type={type} reports={info?.reports} />
+            </div>
+          ))}
+        </div>
+        <div className="w-full h-80 mb-4 flex gap-4">
+          <div className="flex-1">
+            <BaseLineChartCard
+              title="DSI & DSR"
+              reports={info?.reports}
+              accountItemKeys={['leading-chzzts-存货周转天数', 'leading-yszkzzts-应收账款周转天数']}
+            />
+          </div>
+          <div className="flex-1">
+            <Base stockId={stockId} />
+          </div>
         </div>
       </div>
       {maskLoading ? (

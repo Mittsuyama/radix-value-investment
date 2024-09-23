@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { useAtom } from 'jotai';
-import { ButtonProps, Button, Dialog, Flex, Text, TextField } from '@radix-ui/themes';
+import { ButtonProps, Button, Dialog, Flex, Text, TextField, TextArea } from '@radix-ui/themes';
 import { Pencil1Icon } from '@radix-ui/react-icons';
 import { customedStockInfoListAtom } from '@renderer/models';
 import { useMemoizedFn } from 'ahooks';
@@ -16,9 +16,11 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
     const [values, setValues] = useState<{
       price?: string;
       date?: string;
+      review?: string;
     }>({
       price: defaultInfo?.latestBuyPrice?.toString(),
       date: defaultInfo?.latestBuyDate,
+      review: defaultInfo?.review,
     });
 
     const onSave = useMemoizedFn(() => {
@@ -29,6 +31,7 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
             id,
             latestBuyDate: values.date,
             latestBuyPrice: values.price ? Number(values.price) : undefined,
+            review: values.review,
           },
         ]);
       }
@@ -79,6 +82,21 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
                   }))
                 }
                 placeholder="Enter your latest buy date"
+              />
+            </label>
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                Review
+              </Text>
+              <TextArea
+                value={values.review}
+                onChange={(e) =>
+                  setValues((pre) => ({
+                    ...pre,
+                    review: e.target.value,
+                  }))
+                }
+                placeholder="Enter your review"
               />
             </label>
           </Flex>
