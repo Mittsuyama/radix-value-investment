@@ -201,6 +201,7 @@ export const CashFlowStatementCard = memo<CashFlowStatementCardProps>(({ type, r
                     value: data.value || undefined,
                     origin: {
                       ...data,
+                      value: data.value || undefined,
                       originValue: data.value,
                       color: colors[getColorIndex(index + 1, colors.length)],
                     },
@@ -222,6 +223,7 @@ export const CashFlowStatementCard = memo<CashFlowStatementCardProps>(({ type, r
                     value: data.value ? data.value * -1 : undefined,
                     origin: {
                       ...data,
+                      value: data.value ? data.value * -1 : undefined,
                       originValue: data.value,
                       color: colors[getColorIndex(index + 1, colors.length)],
                     },
@@ -243,6 +245,7 @@ export const CashFlowStatementCard = memo<CashFlowStatementCardProps>(({ type, r
                     value: data.value || undefined,
                     origin: {
                       ...data,
+                      value: data.value || undefined,
                       originValue: data.value,
                       color: colors[0],
                     },

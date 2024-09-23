@@ -37,6 +37,9 @@ export interface StockBaseInfo {
 
   /** 涨跌幅 */
   changeRate: number;
+
+  /** 上市时间 */
+  years: number;
 }
 
 export interface SearchStockItem {

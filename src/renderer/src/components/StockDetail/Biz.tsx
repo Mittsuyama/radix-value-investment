@@ -44,7 +44,6 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
         .sort((a, b) => (b.MBI_RATIO || -1) - (a.MBI_RATIO || -1)),
     [sortedItems, items],
   );
-  console.log(moreItems);
   const rest = useMemo<Array<BizItem>>(() => {
     if (!items) {
       return [];
@@ -93,7 +92,7 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
           <Text size="3" className="font-bold">
             Business Proportion
           </Text>
-          {moreItems ? (
+          {moreItems?.length ? (
             <HoverCard.Root>
               <HoverCard.Trigger>
                 <div className="flex items-center gap-1 text-sm text-gray-10 cursor-pointer">

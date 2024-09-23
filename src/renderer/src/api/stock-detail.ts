@@ -13,6 +13,7 @@ export interface FilterConfigsWithLocalCompute {
   ttmROE?: [number, number];
   GPR?: [number, number];
   ids?: string[];
+  yearsInMarket?: [number, number];
 }
 
 interface Params
@@ -25,6 +26,12 @@ interface Params
 export const filterStocks = (datas: StockBaseInfo[], params: FilterConfigsWithLocalCompute) => {
   return datas.filter((item) => {
     if (params.ids && !params.ids.some((id) => item.id.includes(id))) {
+      return false;
+    }
+    if (
+      params.yearsInMarket &&
+      (item.years < params.yearsInMarket[0] || item.years > params.yearsInMarket[1])
+    ) {
       return false;
     }
     if (params.ttmPE && (item.ttmPE < params.ttmPE[0] || item.ttmPE > params.ttmPE[1])) {

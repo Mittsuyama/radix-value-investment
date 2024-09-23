@@ -91,6 +91,7 @@ export const getStockBaseInfoListByFilterRequeset = async (
       ttmROE,
       currentPrice: item.NEW_PRICE,
       changeRate: item.CHANGE_RATE,
+      years: (Date.now() - new Date(item.LISTING_DATE).getTime()) / (86400_000 * 365),
     };
   });
 };
