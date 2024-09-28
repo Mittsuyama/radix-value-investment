@@ -88,7 +88,7 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
   return (
     <Card className="h-full flex flex-col">
       <div className="w-full h-full flex flex-col">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 z-20">
           <Text size="3" className="font-bold">
             Business Proportion
           </Text>
@@ -127,7 +127,7 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
             </HoverCard.Root>
           ) : null}
         </div>
-        <div className="flex-1 w-full p-2 m-[-20px] self-center">
+        <div className="flex-1 w-full p-2 m-[-20px] self-center z-10">
           <ReactEcharts
             style={{ width: '100%', height: '100%' }}
             theme={theme}
