@@ -4,6 +4,18 @@ export const fetchFileText = async (filepath: string) => {
   return await window.electron.ipcRenderer.invoke('fetchFileText', filepath);
 };
 
+export const waitForWriteFile = async (filepath: string, text: string) => {
+  return await window.electron.ipcRenderer.invoke('waitForWriteFile', filepath, text);
+};
+
+export const waitForSelectFile = async () => {
+  return await window.electron.ipcRenderer.invoke('waitForSelectFile');
+};
+
+export const waitForSelectDirectory = async () => {
+  return await window.electron.ipcRenderer.invoke('waitForSelectDirectory');
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const get = async (url: string, params?: any) => {
   const res = await window.electron.ipcRenderer.invoke('axios', 'get', url, params);

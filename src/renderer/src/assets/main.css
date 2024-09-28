@@ -11,3 +11,21 @@ body,
 table td {
   padding: 2px 8px;
 }
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: var(--gray-6);
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 4px;
+}

@@ -35,6 +35,7 @@
     "@yoopta/divider": "^4.8.3",
     "@yoopta/editor": "^4.8.3",
     "@yoopta/embed": "^4.8.3",
+    "@yoopta/exports": "^4.8.3",
     "@yoopta/headings": "^4.8.3",
     "@yoopta/link": "^4.8.3",
     "@yoopta/link-tool": "^4.8.3",

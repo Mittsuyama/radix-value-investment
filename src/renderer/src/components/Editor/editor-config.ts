@@ -10,8 +10,8 @@ import Callout from '@yoopta/callout';
 import { NumberedList, BulletedList, TodoList } from '@yoopta/lists';
 import { HeadingOne, HeadingTwo, HeadingThree } from '@yoopta/headings';
 import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
-import ActionMenu, { DefaultActionMenuRender } from '@yoopta/action-menu-list';
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
+import ActionMenu, { DefaultActionMenuRender } from '@yoopta/action-menu-list';
 import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from '@yoopta/marks';
 
 export const tools = {

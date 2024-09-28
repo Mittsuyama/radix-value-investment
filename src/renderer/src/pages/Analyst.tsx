@@ -25,7 +25,7 @@ export const Analyst = memo(() => {
   const search = useMemo(() => new URLSearchParams(searchStr), [searchStr]);
   const stockId = useMemo(() => search.get('id'), [search]);
 
-  const [selectedStockId, setSelectedStockId] = useState(stockId);
+  const [selectedStock, setSelectedStock] = useState<StockBaseInfo | null>(null);
 
   useAsyncEffect(async () => {
     if (!resource) {
@@ -41,9 +41,9 @@ export const Analyst = memo(() => {
     if (!resource) {
       return;
     }
-    setSelectedStockId(stockId);
     const cur = resource.find((item) => item.id === stockId);
     if (cur) {
+      setSelectedStock(cur);
       setCurrentInfo(cur);
     }
   }, [stockId, resource]);
@@ -52,10 +52,10 @@ export const Analyst = memo(() => {
     return (
       <div
         key={item.id}
-        onClick={() => setSelectedStockId(item.id)}
-        className={cls('py-2 px-8 cursor-pointer', {
-          'hover:bg-accent-2': selectedStockId !== item.id,
-          'bg-accent-4': selectedStockId === item.id,
+        onClick={() => setSelectedStock(item)}
+        className={cls('py-2 px-4 cursor-pointer rounded', {
+          'hover:bg-accent-2': selectedStock?.id !== item.id,
+          'bg-accent-4': selectedStock?.id === item.id,
         })}
       >
         <div className="flex justify-between items-center">
@@ -94,15 +94,15 @@ export const Analyst = memo(() => {
   ));
 
   const titleRender = useMemoizedFn((title: string) => (
-    <div className="font-bold px-8 mt-4 mb-2 text-accent-10">{title}</div>
+    <div className="font-bold px-4 mt-4 mb-2 text-accent-10">{title}</div>
   ));
 
   return (
-    <div className="w-full h-full flex overflow-hidden">
-      <div className="flex-none overflow-auto w-60">
+    <div className="w-full h-full py-1 flex overflow-hidden">
+      <div className="flex-none overflow-auto w-60 px-2">
         {stockId ? (
           <div className="w-full">
-            {titleRender('Base')}
+            {titleRender('Current')}
             {currentInfo ? itemRender(currentInfo) : spinRender()}
           </div>
         ) : null}
@@ -119,15 +119,24 @@ export const Analyst = memo(() => {
           )}
         </div>
       </div>
-      <Separator style={{ height: '100%' }} orientation="vertical" />
-      <div className="flex-1 flex overflow-hidden">
-        <div className={cls('overflow-hidden', { 'w-full': !review, 'w-2/3': review })}>
-          {selectedStockId ? <StockDetail stockId={selectedStockId} /> : null}
+      <div style={{ height: 'calc(100% + 8px)', margin: '-4px 2px' }}>
+        <Separator style={{ height: '100%' }} orientation="vertical" />
+      </div>
+      <div className="flex-1 flex">
+        <div className={cls('overflow-hidden', { 'w-full': !review, 'flex-1': review })}>
+          {selectedStock ? <StockDetail stockId={selectedStock.id} /> : null}
         </div>
-        {review && selectedStockId ? (
-          <div className="w-1/3">
-            <Editor stockId={selectedStockId} />
-          </div>
+        {review ? (
+          <>
+            <div style={{ height: 'calc(100% + 8px)', margin: '-4px 2px' }}>
+              <Separator style={{ height: '100%' }} orientation="vertical" />
+            </div>
+            <div className="flex-1 overflow-hidden">
+              {selectedStock ? (
+                <Editor stockId={selectedStock.id} name={selectedStock.name} />
+              ) : null}
+            </div>
+          </>
         ) : null}
       </div>
     </div>

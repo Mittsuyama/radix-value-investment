@@ -1,12 +1,11 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useState } from 'react';
 import cls from 'classnames';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useAsyncEffect } from 'ahooks';
-import { Spinner, Badge, Button, DropdownMenu, Skeleton, HoverCard } from '@radix-ui/themes';
-import { ChatBubbleIcon, InfoCircledIcon } from '@radix-ui/react-icons';
+import { Spinner, Badge, Button, DropdownMenu, Skeleton } from '@radix-ui/themes';
+import { ChatBubbleIcon } from '@radix-ui/react-icons';
 import { getBatchStocksWithReportsDetailRequest } from '@renderer/api';
 import {
-  customedStockInfoListAtom,
   reportMonthAtom,
   stockBaseInfoListResourceAtom,
   stockReviewEditorOpenAtom,
@@ -24,6 +23,7 @@ import { Profitability } from './Profitability';
 import { Cost } from './Cost';
 import { Biz } from './Biz';
 import { Base } from './Base';
+import { Notice } from './Notice';
 import { BaseLineChartCard } from '../BaselLineChartCard';
 
 const ReportMonthList: Array<{ value: ReportMonth; label: string }> = [
@@ -52,14 +52,8 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
 
   const review = useAtomValue(stockReviewEditorOpenAtom);
   const setOpen = useSetAtom(stockReviewEditorOpenAtom);
-  const customedInfoList = useAtomValue(customedStockInfoListAtom);
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
   const [info, setInfo] = useState<StockWithReportsDetail | null>(null);
-
-  const customedInfo = useMemo(
-    () => customedInfoList.find((item) => item.id === stockId),
-    [customedInfoList, stockId],
-  );
 
   useAsyncEffect(async () => {
     try {
@@ -81,7 +75,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
   return (
     <div className="relative w-full h-full overflow-y-auto overflow-x-hidden">
       <div className={cls('p-6 relative', { 'opacity-25': maskLoading })}>
-        <div className="mb-2 flex justify-between items-center gap-4 flex-wrap">
+        <div className="mb-2 flex justify-between items-center gap-x-4 gap-y-2 flex-wrap">
           <div className="flex items-center gap-4">
             {info ? (
               <>
@@ -153,40 +147,52 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             <div>
               ROE: <span className="font-bold">{info.ttmROE.toFixed(2)}%</span>
             </div>
-            {customedInfo?.review ? (
-              <HoverCard.Root>
-                <HoverCard.Trigger>
-                  <div className="cursor-pointer flex items-center gap-1">
-                    <InfoCircledIcon />
-                    Review
-                  </div>
-                </HoverCard.Trigger>
-                <HoverCard.Content>
-                  <pre className="w-full whitespace-normal">{customedInfo.review}</pre>
-                </HoverCard.Content>
-              </HoverCard.Root>
-            ) : null}
+            <div>
+              CODE: <span className="font-bold">{info.id}</span>
+            </div>
           </div>
         ) : (
           <Skeleton>
             <div className="mb-4 w-[40%]">ROE</div>
           </Skeleton>
         )}
-        <div className={cls('w-full mb-4 flex gap-4', { 'h-80': !review, 'h-64': review })}>
-          <div className="flex-[6]">
-            <Profitability
-              key={`${stockId || stockId}-${month}`}
-              reports={info?.reports}
-              cap={info?.totalMarketCap}
-            />
+        {review ? (
+          <>
+            <div className="'w-full mb-4 flex gap-4 h-64">
+              <div className="flex-[6]">
+                <Profitability
+                  key={`${stockId || stockId}-${month}`}
+                  reports={info?.reports}
+                  cap={info?.totalMarketCap}
+                />
+              </div>
+            </div>
+            <div className="'w-full mb-4 flex gap-4 h-64">
+              <div className="flex-[4]">
+                <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
+              </div>
+              <div className="flex-[5]">
+                <Cost key={`${stockId}-${month}`} reports={info?.reports} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="w-full mb-4 flex gap-4 h-80">
+            <div className="flex-[6]">
+              <Profitability
+                key={`${stockId || stockId}-${month}`}
+                reports={info?.reports}
+                cap={info?.totalMarketCap}
+              />
+            </div>
+            <div className="flex-[4]">
+              <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
+            </div>
+            <div className="flex-[5]">
+              <Cost key={`${stockId}-${month}`} reports={info?.reports} />
+            </div>
           </div>
-          <div className="flex-[4]">
-            <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
-          </div>
-          <div className="flex-[5]">
-            <Cost key={`${stockId}-${month}`} reports={info?.reports} />
-          </div>
-        </div>
+        )}
         {review ? (
           <>
             <div className="w-full h-64 mb-4 flex gap-4 overflow-hidden">
@@ -213,13 +219,32 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             ))}
           </div>
         )}
-        <div className="w-full h-80 mb-4 flex gap-4">
-          {cashFlowSheets.map((type) => (
-            <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
-              <CashFlowStatementCard type={type} reports={info?.reports} />
+        {review ? (
+          <>
+            <div className="w-full h-80 mb-4 flex gap-4">
+              {cashFlowSheets.slice(0, 1).map((type) => (
+                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                  <CashFlowStatementCard type={type} reports={info?.reports} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            <div className="w-full h-80 mb-4 flex gap-4">
+              {cashFlowSheets.slice(1, 3).map((type) => (
+                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                  <CashFlowStatementCard type={type} reports={info?.reports} />
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-80 mb-4 flex gap-4">
+            {cashFlowSheets.map((type) => (
+              <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                <CashFlowStatementCard type={type} reports={info?.reports} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="w-full h-80 mb-4 flex gap-4">
           <div className="flex-1">
             <BaseLineChartCard
@@ -228,6 +253,11 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
               accountItemKeys={['leading-chzzts-存货周转天数', 'leading-yszkzzts-应收账款周转天数']}
             />
           </div>
+          <div className="flex-1 overflow-hidden">
+            <Notice code={stockId.split('.')[0]} />
+          </div>
+        </div>
+        <div className="w-full h-80 mb-4 flex gap-4">
           <div className="flex-1">
             <Base stockId={stockId} />
           </div>
