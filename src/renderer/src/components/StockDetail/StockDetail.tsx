@@ -1,14 +1,15 @@
 import { memo, useMemo, useState } from 'react';
 import cls from 'classnames';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useAsyncEffect } from 'ahooks';
 import { Spinner, Badge, Button, DropdownMenu, Skeleton, HoverCard } from '@radix-ui/themes';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { ChatBubbleIcon, InfoCircledIcon } from '@radix-ui/react-icons';
 import { getBatchStocksWithReportsDetailRequest } from '@renderer/api';
 import {
   customedStockInfoListAtom,
   reportMonthAtom,
   stockBaseInfoListResourceAtom,
+  stockReviewEditorOpenAtom,
 } from '@renderer/models';
 import { BalanceSheetType, ReportMonth, StockWithReportsDetail } from '@renderer/types';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
@@ -49,6 +50,8 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
   const [maskLoading, setMaskLoading] = useState(true);
   const [month, setMonth] = useAtom(reportMonthAtom);
 
+  const review = useAtomValue(stockReviewEditorOpenAtom);
+  const setOpen = useSetAtom(stockReviewEditorOpenAtom);
   const customedInfoList = useAtomValue(customedStockInfoListAtom);
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
   const [info, setInfo] = useState<StockWithReportsDetail | null>(null);
@@ -76,7 +79,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
   }, [stockId, month]);
 
   return (
-    <div className="relative w-full h-full overflow-auto">
+    <div className="relative w-full h-full overflow-y-auto overflow-x-hidden">
       <div className={cls('p-6 relative', { 'opacity-25': maskLoading })}>
         <div className="mb-2 flex justify-between items-center gap-4 flex-wrap">
           <div className="flex items-center gap-4">
@@ -112,7 +115,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             </DropdownMenu.Root>
           </div>
           <div className="flex items-center gap-4">
-            <StaredIconButton id={stockId} />
+            <StaredIconButton variant="soft" id={stockId} />
             <CustomedStockInfoEditButton key={stockId} variant="outline" id={stockId} />
             <Button
               variant="outline"
@@ -132,6 +135,10 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
               }
             >
               Annoucement
+            </Button>
+            <Button onClick={() => setOpen((pre) => !pre)}>
+              <ChatBubbleIcon />
+              Review
             </Button>
           </div>
         </div>
@@ -165,7 +172,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             <div className="mb-4 w-[40%]">ROE</div>
           </Skeleton>
         )}
-        <div className="w-full h-80 mb-4 flex gap-4">
+        <div className={cls('w-full mb-4 flex gap-4', { 'h-80': !review, 'h-64': review })}>
           <div className="flex-[6]">
             <Profitability
               key={`${stockId || stockId}-${month}`}
@@ -180,23 +187,35 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             <Cost key={`${stockId}-${month}`} reports={info?.reports} />
           </div>
         </div>
-        <div className="w-full h-80 mb-4 flex gap-4">
-          {balanceSheets.slice(0, 4).map((type) => (
-            <div key={`${stockId}-${type}-${month}`} className="flex-1">
-              <BalanceSheetChartCard type={type} reports={info?.reports} />
+        {review ? (
+          <>
+            <div className="w-full h-64 mb-4 flex gap-4 overflow-hidden">
+              {balanceSheets.slice(0, 2).map((type) => (
+                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                  <BalanceSheetChartCard type={type} reports={info?.reports} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        {/* <div className="w-full h-80 mb-4 flex gap-4">
-          {balanceSheets.slice(2, 4).map((type) => (
-            <div key={`${stockId}-${type}-${month}`} className="flex-1">
-              <BalanceSheetChartCard type={type} reports={info?.reports} />
+            <div className="w-full h-64 mb-4 flex gap-4 overflow-hidden">
+              {balanceSheets.slice(2, 4).map((type) => (
+                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                  <BalanceSheetChartCard type={type} reports={info?.reports} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div> */}
+          </>
+        ) : (
+          <div className="w-full h-80 mb-4 flex gap-4 overflow-hidden">
+            {balanceSheets.slice(0, 4).map((type) => (
+              <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                <BalanceSheetChartCard type={type} reports={info?.reports} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="w-full h-80 mb-4 flex gap-4">
           {cashFlowSheets.map((type) => (
-            <div key={`${stockId}-${type}-${month}`} className="flex-1">
+            <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
               <CashFlowStatementCard type={type} reports={info?.reports} />
             </div>
           ))}

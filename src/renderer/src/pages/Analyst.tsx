@@ -4,10 +4,15 @@ import { useAsyncEffect, useMemoizedFn } from 'ahooks';
 import { useAtomValue } from 'jotai';
 import { useLocation } from 'react-router-dom';
 import { Separator, Skeleton } from '@radix-ui/themes';
-import { staredStockIdListAtom, stockBaseInfoListResourceAtom } from '@renderer/models';
+import {
+  staredStockIdListAtom,
+  stockBaseInfoListResourceAtom,
+  stockReviewEditorOpenAtom,
+} from '@renderer/models';
 import { StockBaseInfo } from '@renderer/types';
 import { ColoredChangeRate } from '@renderer/components/ColoredChangeRate';
 import { StockDetail } from '@renderer/components/StockDetail';
+import { Editor } from '@renderer/components/Editor';
 
 export const Analyst = memo(() => {
   const { search: searchStr } = useLocation();
@@ -15,6 +20,7 @@ export const Analyst = memo(() => {
   const [currentInfo, setCurrentInfo] = useState<StockBaseInfo | null>(null);
   const [staredInfoList, setStaredInfoList] = useState<StockBaseInfo[] | null>(null);
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
+  const review = useAtomValue(stockReviewEditorOpenAtom);
 
   const search = useMemo(() => new URLSearchParams(searchStr), [searchStr]);
   const stockId = useMemo(() => search.get('id'), [search]);
@@ -92,7 +98,7 @@ export const Analyst = memo(() => {
   ));
 
   return (
-    <div className="w-full h-full flex">
+    <div className="w-full h-full flex overflow-hidden">
       <div className="flex-none overflow-auto w-60">
         {stockId ? (
           <div className="w-full">
@@ -114,8 +120,15 @@ export const Analyst = memo(() => {
         </div>
       </div>
       <Separator style={{ height: '100%' }} orientation="vertical" />
-      <div className="flex-1">
-        {selectedStockId ? <StockDetail stockId={selectedStockId} /> : null}
+      <div className="flex-1 flex overflow-hidden">
+        <div className={cls('overflow-hidden', { 'w-full': !review, 'w-2/3': review })}>
+          {selectedStockId ? <StockDetail stockId={selectedStockId} /> : null}
+        </div>
+        {review && selectedStockId ? (
+          <div className="w-1/3">
+            <Editor stockId={selectedStockId} />
+          </div>
+        ) : null}
       </div>
     </div>
   );

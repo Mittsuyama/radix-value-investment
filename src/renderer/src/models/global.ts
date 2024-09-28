@@ -9,9 +9,10 @@ import {
 import { ColorType } from '@renderer/constants';
 import { atom } from 'jotai';
 
-enum StorageKey {
+export enum StorageKey {
   CUSTOMED_STOCK_INFO_LIST = 'customed-stock-info-list',
   SARED_STOCK_ID_LIST = 'stared-stock-id-list',
+  STOCK_REVIEW = 'stock-review',
 }
 
 export const colorAtom = atomWithStorage<ColorType>('color', 'indigo', undefined, {
@@ -29,6 +30,12 @@ export const staredStockIdListAtom = atomWithStorage<string[]>(
 export const customedStockInfoListAtom = atomWithStorage<CustomedStockInfo[]>(
   StorageKey.CUSTOMED_STOCK_INFO_LIST,
   [],
+  undefined,
+  { getOnInit: true },
+);
+export const stockReviewEditorOpenAtom = atomWithStorage<boolean>(
+  'stock-review-editor-open',
+  false,
   undefined,
   { getOnInit: true },
 );

@@ -28,7 +28,13 @@ export const Cost = memo<CostProps>(({ reports }) => {
       totalName="Operating Profit"
       reports={reports}
       title="Operating Profit & Cost Proportion"
-      accountItemKeys={['l-xsfy-销售费用', 'l-glfy-管理费用', 'l-yffy-研发费用', 'l-lxfy-利息费用']}
+      accountItemKeys={[
+        'l-xsfy-销售费用',
+        'l-glfy-管理费用',
+        'l-yffy-研发费用',
+        'l-lxfy-利息费用',
+        'l-jlr-净利润',
+      ]}
     />
   );
 });
