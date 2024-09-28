@@ -119,7 +119,7 @@ export const Analyst = memo(() => {
       <div style={{ height: 'calc(100% + 8px)', margin: '-4px 2px' }}>
         <Separator style={{ height: '100%' }} orientation="vertical" />
       </div>
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         <div className={cls('overflow-hidden', { 'w-full': !review, 'flex-1': review })}>
           {selectedStock ? <StockDetail stockId={selectedStock.id} /> : null}
         </div>

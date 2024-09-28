@@ -375,6 +375,7 @@ export const LEADING_ITEM_TO_KEY = {
   'leading-xsmll-销售毛利率': 'XSMLL',
   'leading-xsjll-销售净利率': 'XSJLL',
   'leading-kfjqroe-扣非加权ROE': 'ROEKCJQ',
+  'leading-kfjlr-扣非净利润': 'KCFJCXSYJLR',
 };
 
 export const ACCOUNT_ITEM = {

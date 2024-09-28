@@ -3,7 +3,7 @@ import cls from 'classnames';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useAsyncEffect } from 'ahooks';
 import { Spinner, Badge, Button, DropdownMenu, Skeleton } from '@radix-ui/themes';
-import { ChatBubbleIcon } from '@radix-ui/react-icons';
+import { ChatBubbleIcon, Link2Icon } from '@radix-ui/react-icons';
 import { getBatchStocksWithReportsDetailRequest } from '@renderer/api';
 import {
   reportMonthAtom,
@@ -95,7 +95,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
                 <Button variant="ghost" style={{ alignItems: 'center', gap: 6 }}>
-                  Report Type: {ReportMonthList.find((item) => item.value === month)?.label}
+                  Type: {ReportMonthList.find((item) => item.value === month)?.label}
                   <DropdownMenu.TriggerIcon />
                 </Button>
               </DropdownMenu.Trigger>
@@ -120,6 +120,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
                 )
               }
             >
+              <Link2Icon />
               Eastmoney
             </Button>
             <Button onClick={() => setOpen((pre) => !pre)}>
@@ -154,7 +155,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
         {review ? (
           <>
             <div className="'w-full mb-4 flex gap-4 h-64">
-              <div className="flex-[6]">
+              <div className="flex-[6] overflow-hidden">
                 <Profitability
                   key={`${stockId || stockId}-${month}`}
                   reports={info?.reports}
@@ -163,41 +164,41 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
               </div>
             </div>
             <div className="'w-full mb-4 flex gap-4 h-64">
-              <div className="flex-[4]">
+              <div className="flex-[4] overflow-hidden">
                 <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
               </div>
-              <div className="flex-[5]">
+              <div className="flex-[5] overflow-hidden">
                 <Cost key={`${stockId}-${month}`} reports={info?.reports} />
               </div>
             </div>
           </>
         ) : (
           <div className="w-full mb-4 flex gap-4 h-80">
-            <div className="flex-[6]">
+            <div className="flex-[6] overflow-hidden">
               <Profitability
                 key={`${stockId || stockId}-${month}`}
                 reports={info?.reports}
                 cap={info?.totalMarketCap}
               />
             </div>
-            <div className="flex-[4]">
+            <div className="flex-[4] overflow-hidden">
               <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
             </div>
-            <div className="flex-[5]">
+            <div className="flex-[5] overflow-hidden">
               <Cost key={`${stockId}-${month}`} reports={info?.reports} />
             </div>
           </div>
         )}
         {review ? (
           <>
-            <div className="w-full h-64 mb-4 flex gap-4 overflow-hidden">
+            <div className="w-full h-64 mb-4 flex gap-4">
               {balanceSheets.slice(0, 2).map((type) => (
                 <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
                   <BalanceSheetChartCard type={type} reports={info?.reports} />
                 </div>
               ))}
             </div>
-            <div className="w-full h-64 mb-4 flex gap-4 overflow-hidden">
+            <div className="w-full h-64 mb-4 flex gap-4">
               {balanceSheets.slice(2, 4).map((type) => (
                 <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
                   <BalanceSheetChartCard type={type} reports={info?.reports} />
@@ -206,7 +207,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
             </div>
           </>
         ) : (
-          <div className="w-full h-80 mb-4 flex gap-4 overflow-hidden">
+          <div className="w-full h-80 mb-4 flex gap-4">
             {balanceSheets.slice(0, 4).map((type) => (
               <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
                 <BalanceSheetChartCard type={type} reports={info?.reports} />
@@ -253,7 +254,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
           </div>
         </div>
         <div className="w-full h-80 mb-4 flex gap-4">
-          <div className="flex-1">
+          <div className="flex-1 overflow-auto">
             <Base stockId={stockId} />
           </div>
         </div>

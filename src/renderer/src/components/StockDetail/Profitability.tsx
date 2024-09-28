@@ -38,6 +38,13 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
     );
   }
 
+  const ratio = reversedReports?.map((item) => ({
+    year: item.year,
+    value:
+      (Number(item.data[ACCOUNT_ITEM['x-jyhdcsdxjllje-经营活动产生的现金流量净额']]) /
+        Number(item.data[ACCOUNT_ITEM['leading-kfjlr-扣非净利润']])) *
+      100,
+  }));
   const mll = reversedReports?.map((item) => ({
     year: item.year,
     value: item.data[ACCOUNT_ITEM['leading-xsmll-销售毛利率']],
@@ -55,6 +62,10 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
     value: (computeSimpleCFC([item], 1) / cap) * 100,
   }));
   const list = [
+    {
+      data: ratio,
+      name: 'Cash/Net Profit',
+    },
     {
       data: mll,
       name: 'Gross Profit Rate',
