@@ -4,20 +4,60 @@ import { Route, Switch, Redirect } from 'react-router-dom';
 import { Theme } from '@radix-ui/themes';
 import { Separator } from '@radix-ui/themes';
 import { TopMenu } from '@renderer/components/TopMenu';
-import { colorAtom, stockBaseInfoListResourceAtom, themeAtom } from '@renderer/models';
+import {
+  colorAtom,
+  customedStockInfoListAtom,
+  dataDirectoryAtom,
+  Direcotry,
+  staredStockIdListAtom,
+  stockBaseInfoListResourceAtom,
+  StorageKey,
+  themeAtom,
+} from '@renderer/models';
 import { Dashboard, Filter, Analyst, GoodLuck } from '@renderer/pages';
 import '@radix-ui/themes/styles.css';
 import { getStockBaseInfoListByFilterRequeset } from './api';
+import { fetchFileText } from './api/request';
 
 function App(): JSX.Element {
   const theme = useAtomValue(themeAtom);
   const color = useAtomValue(colorAtom);
+  const dir = useAtomValue(dataDirectoryAtom);
+
+  const setStaredList = useSetAtom(staredStockIdListAtom);
+  const setCustomed = useSetAtom(customedStockInfoListAtom);
   const setResource = useSetAtom(stockBaseInfoListResourceAtom);
 
   useMount(async () => {
     const res = await getStockBaseInfoListByFilterRequeset({});
     res.sort((a, b) => b.totalMarketCap - a.totalMarketCap);
     setResource(res);
+  });
+
+  useMount(async () => {
+    if (dir) {
+      const res = await fetchFileText(
+        `${dir}${Direcotry.GLOBAL}${StorageKey.CUSTOMED_STOCK_INFO_LIST}.json`,
+      );
+      try {
+        const data = JSON.parse(res);
+        setCustomed(data);
+      } catch {
+        // do nothing
+      }
+    }
+  });
+
+  useMount(async () => {
+    const res = await fetchFileText(
+      `${dir}${Direcotry.GLOBAL}${StorageKey.SARED_STOCK_ID_LIST}.json`,
+    );
+    try {
+      const data = JSON.parse(res);
+      setStaredList(data);
+    } catch {
+      // do nothing
+    }
   });
 
   return (

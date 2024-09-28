@@ -13,6 +13,12 @@ export enum StorageKey {
   CUSTOMED_STOCK_INFO_LIST = 'customed-stock-info-list',
   SARED_STOCK_ID_LIST = 'stared-stock-id-list',
   STOCK_REVIEW = 'stock-review',
+  DATA_DIRECTORY = 'data-directory',
+}
+
+export enum Direcotry {
+  REVIEW = '/review/',
+  GLOBAL = '/global/',
 }
 
 export const colorAtom = atomWithStorage<ColorType>('color', 'indigo', undefined, {
@@ -21,18 +27,16 @@ export const colorAtom = atomWithStorage<ColorType>('color', 'indigo', undefined
 export const themeAtom = atomWithStorage<ThemeType>('theme', 'light', undefined, {
   getOnInit: true,
 });
-export const staredStockIdListAtom = atomWithStorage<string[]>(
-  StorageKey.SARED_STOCK_ID_LIST,
-  [],
+export const dataDirectoryAtom = atomWithStorage<string | null>(
+  StorageKey.DATA_DIRECTORY,
+  null,
   undefined,
-  { getOnInit: true },
+  {
+    getOnInit: true,
+  },
 );
-export const customedStockInfoListAtom = atomWithStorage<CustomedStockInfo[]>(
-  StorageKey.CUSTOMED_STOCK_INFO_LIST,
-  [],
-  undefined,
-  { getOnInit: true },
-);
+export const staredStockIdListAtom = atom<string[]>([]);
+export const customedStockInfoListAtom = atom<CustomedStockInfo[]>([]);
 export const stockReviewEditorOpenAtom = atomWithStorage<boolean>(
   'stock-review-editor-open',
   false,
@@ -56,25 +60,3 @@ export const sortConfigAtom = atomWithStorage<SortConfig | undefined>(
     getOnInit: true,
   },
 );
-
-const safeJsonParse = <T>(str: string | null, defaultValue: T): T => {
-  if (!str) {
-    return defaultValue;
-  }
-  try {
-    return JSON.parse(str);
-  } catch {
-    return defaultValue;
-  }
-};
-
-export const getExportableData = () => ({
-  [StorageKey.SARED_STOCK_ID_LIST]: safeJsonParse<string[]>(
-    localStorage.getItem(StorageKey.SARED_STOCK_ID_LIST),
-    [],
-  ),
-  [StorageKey.CUSTOMED_STOCK_INFO_LIST]: safeJsonParse<CustomedStockInfo[]>(
-    localStorage.getItem(StorageKey.CUSTOMED_STOCK_INFO_LIST),
-    [],
-  ),
-});

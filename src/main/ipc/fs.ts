@@ -3,10 +3,24 @@ import fs from 'fs';
 
 export const createFileIpcHandle = (): void => {
   ipcMain.handle('fetchFileText', async (_, filepath: string) => {
-    const data = fs.readFileSync(filepath, 'utf8');
-    return data;
+    try {
+      const data = fs.readFileSync(filepath, 'utf8');
+      return data;
+    } catch {
+      return undefined;
+    }
   });
   ipcMain.handle('waitForWriteFile', async (_, filepath: string, text: string) => {
+    const filepahtSplitResult = filepath.split('/');
+    const path = filepahtSplitResult.slice(0, filepahtSplitResult.length - 1).join('/');
+    try {
+      const dir = fs.statSync(path);
+      if (!dir.isDirectory) {
+        fs.mkdirSync(path);
+      }
+    } catch {
+      fs.mkdirSync(path);
+    }
     const data = fs.writeFileSync(filepath, text, 'utf-8');
     return data;
   });

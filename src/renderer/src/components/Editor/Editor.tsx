@@ -1,9 +1,11 @@
 import { memo, useEffect, useMemo, useRef } from 'react';
 import { markdown } from '@yoopta/exports';
 import YooptaEditor, { createYooptaEditor, YooptaContentValue } from '@yoopta/editor';
-import { StorageKey } from '@renderer/models';
+import { dataDirectoryAtom, Direcotry } from '@renderer/models';
 import { tools, plugins, marks } from './editor-config';
 import { useDebounceFn, useMemoizedFn } from 'ahooks';
+import { fetchFileText, waitForWriteFile } from '@renderer/api/request';
+import { useAtomValue } from 'jotai';
 
 interface EditorProps {
   stockId: string;
@@ -11,49 +13,58 @@ interface EditorProps {
 }
 
 export const Editor = memo<EditorProps>(({ stockId, name }) => {
+  const dataDirectory = useAtomValue(dataDirectoryAtom);
   const editor = useMemo(() => createYooptaEditor(), []);
-  const storageKey = useMemo(() => `${StorageKey.STOCK_REVIEW}-${stockId}`, [stockId]);
+  const filename = useMemo(
+    () => (dataDirectory ? `${dataDirectory}${Direcotry.REVIEW}${stockId}.json` : undefined),
+    [dataDirectory, stockId],
+  );
   const timeoutRef = useRef(0);
   const selectionBoxRef = useRef<HTMLDivElement>(null);
 
-  const save = useMemoizedFn((key?: string) => {
-    if (!editor.isEmpty()) {
-      localStorage.setItem(key || storageKey, JSON.stringify(editor.getEditorValue()));
+  const save = useMemoizedFn(async (file: string | undefined = filename) => {
+    if (!editor.isEmpty() && file) {
+      await waitForWriteFile(file, JSON.stringify(editor.getEditorValue()));
     }
   });
 
-  const { run: debouncedSave } = useDebounceFn(save, { wait: 5_000 });
+  const { run: debouncedSave } = useDebounceFn(() => save(), { wait: 5_000 });
 
   useEffect(() => {
-    let value: YooptaContentValue | undefined;
-    try {
-      const json = localStorage.getItem(storageKey);
-      if (json) {
-        value = JSON.parse(json);
+    setTimeout(async () => {
+      if (!filename) {
+        return;
       }
-    } catch {
-      // do nothing
-    }
-    if (value) {
-      editor.setEditorValue(value);
-    } else {
-      editor.setEditorValue(markdown.deserialize(editor, `# ${name}\n\n---\n\n`));
-    }
+      let value: YooptaContentValue | undefined;
+      try {
+        const json = await fetchFileText(filename);
+        if (json) {
+          value = JSON.parse(json);
+        }
+      } catch {
+        // do nothing
+      }
+      if (value) {
+        editor.setEditorValue(value);
+      } else {
+        editor.setEditorValue(markdown.deserialize(editor, `# ${name}\n\n---\n\n`));
+      }
 
-    editor.on('change', debouncedSave);
+      editor.on('change', debouncedSave);
+    }, 0);
 
-    const preStorageKey = storageKey;
+    const preFilename = filename;
     const timeout = timeoutRef.current;
     return () => {
-      save(preStorageKey);
+      save(preFilename);
       timeout && window.clearTimeout(timeout);
       editor.off('change', debouncedSave);
     };
-  }, [editor, storageKey, name, debouncedSave, save]);
+  }, [editor, filename, name, debouncedSave, save]);
 
   return (
     <div
-      className="w-full h-full py-4 px-14 relative"
+      className="w-full h-full py-4 px-14 relative editor-wrapper"
       ref={selectionBoxRef}
       onKeyDown={(e) => {
         if (e.metaKey || e.ctrlKey) {

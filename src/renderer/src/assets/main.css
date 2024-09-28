@@ -29,3 +29,12 @@ table td {
 ::-webkit-scrollbar-track {
   border-radius: 4px;
 }
+
+.editor-wrapper .yoopta-callout-theme-warning {
+  border-color: var(--orange-9);
+}
+
+.editor-wrapper .yoopta-callout-theme-success {
+  background-color: var(--green-3);
+  border-color: var(--green-9);
+}

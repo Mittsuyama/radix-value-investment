@@ -114,6 +114,11 @@ export const TopMenu = memo(() => {
         onRandomlyPickOneStock();
         return;
       }
+      if (e.key === 'r' && (e.metaKey || e.ctrlKey)) {
+        location.reload();
+        e.preventDefault();
+        e.stopPropagation();
+      }
       if (searchResultList) {
         const index = searchResultList.findIndex(
           (item) => item.stockId === selectedResultItem?.stockId,

@@ -1,9 +1,15 @@
 import { memo, useState } from 'react';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { ButtonProps, Button, Dialog, Flex, Text, TextField, TextArea } from '@radix-ui/themes';
 import { Pencil1Icon } from '@radix-ui/react-icons';
-import { customedStockInfoListAtom } from '@renderer/models';
+import {
+  customedStockInfoListAtom,
+  dataDirectoryAtom,
+  Direcotry,
+  StorageKey,
+} from '@renderer/models';
 import { useMemoizedFn } from 'ahooks';
+import { waitForWriteFile } from '@renderer/api/request';
 
 interface CustomedStockInfoEditButtonProps extends Pick<ButtonProps, 'variant' | 'size'> {
   id: string;
@@ -11,6 +17,7 @@ interface CustomedStockInfoEditButtonProps extends Pick<ButtonProps, 'variant' |
 
 export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps>(
   ({ id, ...rest }) => {
+    const dir = useAtomValue(dataDirectoryAtom);
     const [customedInfoList, setCustomedInfoList] = useAtom(customedStockInfoListAtom);
     const [defaultInfo] = useState(customedInfoList.find((item) => item.id === id));
     const [values, setValues] = useState<{
@@ -23,9 +30,9 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
       review: defaultInfo?.review,
     });
 
-    const onSave = useMemoizedFn(() => {
+    const onSave = useMemoizedFn(async () => {
       if (values) {
-        setCustomedInfoList([
+        const newData = [
           ...customedInfoList.filter((item) => item.id !== id),
           {
             id,
@@ -33,7 +40,14 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
             latestBuyPrice: values.price ? Number(values.price) : undefined,
             review: values.review,
           },
-        ]);
+        ];
+        setCustomedInfoList(newData);
+        if (dir) {
+          await waitForWriteFile(
+            `${dir}${Direcotry.GLOBAL}${StorageKey.CUSTOMED_STOCK_INFO_LIST}.json`,
+            JSON.stringify(newData),
+          );
+        }
       }
     });
 
