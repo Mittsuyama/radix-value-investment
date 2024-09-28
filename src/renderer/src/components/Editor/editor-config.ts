@@ -37,7 +37,14 @@ export const plugins = [
   Accordion,
   Code,
   Embed,
-  Link,
+  Link.extend({
+    elementProps: {
+      link: (props) => ({
+        ...props,
+        target: '_about',
+      }),
+    },
+  }),
   Callout,
   HeadingOne,
   HeadingTwo,

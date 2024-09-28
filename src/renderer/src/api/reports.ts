@@ -135,7 +135,6 @@ export const getTreeFinancialReportsRequest = async (
       months,
     }),
   ]);
-  console.log(leadingList.find((item) => item.year === 2023 && item.month === 12));
   return zcfz.map<FinancialReport>((report, index) => {
     const leading = leadingList.find(
       (item) => item.year === report.year && item.month === report.month,
