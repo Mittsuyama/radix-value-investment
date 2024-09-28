@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useMemo, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useMemoizedFn, useDebounceFn } from 'ahooks';
 import cls from 'classnames';
@@ -34,14 +34,19 @@ interface TopMenuItemProps {
 }
 
 const TopMenuItem = memo<TopMenuItemProps>(({ title, href, checked }) => {
+  const { search: searchStr } = useLocation();
   const history = useHistory();
+
+  const search = useMemo(() => new URLSearchParams(searchStr), [searchStr]);
+  const id = useMemo(() => search.get('id'), [search]);
+
   return (
     <div
       className={cls('px-3 py-1 text-sm rounded cursor-pointer', {
         'bg-accent-10 text-gray-1 ': checked,
         'hover:bg-accent-3 text-gray-12': !checked,
       })}
-      onClick={() => history.push(href)}
+      onClick={() => history.push(id ? `${href}?id=${id}` : href)}
     >
       {title}
     </div>

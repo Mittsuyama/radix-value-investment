@@ -47,11 +47,13 @@ const typeToCashFlowItems: Record<CashFlowStatementType, ItemConfig> = {
       'x-qdtzsysddxj-取得投资收益收到的现金',
       'x-czgdzcwxzchqtcqzcshdxjje-处置固定资产、无形资产和其他长期资产收回的现金净额',
       'x-sddqtytzhdygdxj-收到的其他与投资活动有关的现金',
+      'x-shtzsddxj-收回投资收到的现金',
     ],
     negativeTotal: 'x-tzhdxjlcxj-投资活动现金流出小计',
     negative: [
       'x-gjgdzcwxzchqtcqzczfdxj-购建固定资产、无形资产和其他长期资产支付的现金',
       'x-zfqtytzhdygdxj-支付其他与投资活动有关的现金',
+      'x-tzzfdxj-投资支付的现金',
     ],
     rest: 'x-tzhdcsdxjllje-投资活动产生的现金流量净额',
   },

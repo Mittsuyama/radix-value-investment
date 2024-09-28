@@ -64,7 +64,7 @@ export const Editor = memo<EditorProps>(({ stockId, name }) => {
 
   return (
     <div
-      className="w-full h-full py-4 px-14 relative editor-wrapper"
+      className="w-full h-full py-4 px-14 relative editor-wrapper overflow-y-auto"
       ref={selectionBoxRef}
       onKeyDown={(e) => {
         if (e.metaKey || e.ctrlKey) {

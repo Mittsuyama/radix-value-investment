@@ -4,6 +4,7 @@ import {
   ReportMonth,
   SortConfig,
   StockBaseInfo,
+  StockWithReportsDetail,
   ThemeType,
 } from '@renderer/types';
 import { ColorType } from '@renderer/constants';
@@ -60,3 +61,5 @@ export const sortConfigAtom = atomWithStorage<SortConfig | undefined>(
     getOnInit: true,
   },
 );
+
+export const stockWithReportsDetailListAtom = atom<Array<StockWithReportsDetail> | null>(null);

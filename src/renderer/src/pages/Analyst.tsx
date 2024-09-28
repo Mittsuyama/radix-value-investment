@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import cls from 'classnames';
-import { useAsyncEffect, useMemoizedFn } from 'ahooks';
+import { useMemoizedFn } from 'ahooks';
 import { useAtomValue } from 'jotai';
 import { useLocation } from 'react-router-dom';
 import { Separator, Skeleton } from '@radix-ui/themes';
@@ -8,6 +8,7 @@ import {
   staredStockIdListAtom,
   stockBaseInfoListResourceAtom,
   stockReviewEditorOpenAtom,
+  stockWithReportsDetailListAtom,
 } from '@renderer/models';
 import { StockBaseInfo } from '@renderer/types';
 import { ColoredChangeRate } from '@renderer/components/ColoredChangeRate';
@@ -18,7 +19,7 @@ export const Analyst = memo(() => {
   const { search: searchStr } = useLocation();
   const staredList = useAtomValue(staredStockIdListAtom);
   const [currentInfo, setCurrentInfo] = useState<StockBaseInfo | null>(null);
-  const [staredInfoList, setStaredInfoList] = useState<StockBaseInfo[] | null>(null);
+  const stockDetailList = useAtomValue(stockWithReportsDetailListAtom);
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
   const review = useAtomValue(stockReviewEditorOpenAtom);
 
@@ -27,15 +28,11 @@ export const Analyst = memo(() => {
 
   const [selectedStock, setSelectedStock] = useState<StockBaseInfo | null>(null);
 
-  useAsyncEffect(async () => {
-    if (!resource) {
-      return;
-    }
-    const res = resource
-      .filter((item) => staredList.includes(item.id))
-      .filter((item) => item.id !== stockId);
-    setStaredInfoList(res);
-  }, [staredList, stockId, resource]);
+  const staredInfoList = useMemo(() => {
+    return stockDetailList
+      ?.filter((item) => staredList.includes(item.id))
+      ?.filter((item) => item.id !== stockId);
+  }, [stockDetailList, stockId, staredList]);
 
   useEffect(() => {
     if (!resource) {
@@ -77,7 +74,7 @@ export const Analyst = memo(() => {
   });
 
   const spinRender = useMemoizedFn(() => (
-    <div className="px-8 py-2">
+    <div className="px-4 py-2">
       <div className="flex justify-between items-center mb-1">
         <Skeleton>
           <div className="font-bold">Stock Name</div>

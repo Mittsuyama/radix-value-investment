@@ -2176,7 +2176,7 @@
 
 "@yoopta/exports@^4.8.3":
   version "4.8.3"
-  resolved "https://bnpm.byted.org/@yoopta/exports/-/exports-4.8.3.tgz#d6d0e7f2c5b13ec3adee85658af8156e700fdbe4"
+  resolved "https://registry.npmmirror.com/@yoopta/exports/-/exports-4.8.3.tgz#d6d0e7f2c5b13ec3adee85658af8156e700fdbe4"
   integrity sha512-OsitDEYx6Grd9sQ88hQqL/NUiiWn1Y1zjEaERut0zrTvF+d3gS817dhzxdNnrSMS24cD9D5OFv5314moatqJ2A==
   dependencies:
     marked "^13.0.0"
@@ -4572,7 +4572,7 @@ magic-string@^0.30.10:
 
 marked@^13.0.0:
   version "13.0.3"
-  resolved "https://bnpm.byted.org/marked/-/marked-13.0.3.tgz#5c5b4a5d0198060c7c9bc6ef9420a7fed30f822d"
+  resolved "https://registry.npmmirror.com/marked/-/marked-13.0.3.tgz#5c5b4a5d0198060c7c9bc6ef9420a7fed30f822d"
   integrity sha512-rqRix3/TWzE9rIoFGIn8JmsVfhiuC8VIQ8IdX5TfzmeBucdY05/0UlzKaw0eVtpcN/OdVFpBk7CjKGo9iHJ/zA==
 
 matcher@^3.0.0:

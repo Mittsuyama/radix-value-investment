@@ -1,5 +1,10 @@
 @import './base.css';
 
+@font-face {
+  font-family: 'Source';
+  src: url('./SourceHanSansSC-VF.otf') format('opentype');
+}
+
 html,
 body,
 #root {
@@ -25,6 +30,10 @@ table td {
   border-radius: 4px;
   background: var(--gray-6);
 }
+::-webkit-scrollbar-thumb:hover {
+  border-radius: 4px;
+  background: var(--gray-8);
+}
 
 ::-webkit-scrollbar-track {
   border-radius: 4px;
@@ -37,4 +46,11 @@ table td {
 .editor-wrapper .yoopta-callout-theme-success {
   background-color: var(--green-3);
   border-color: var(--green-9);
+}
+.editor-wrapper .yoopta-table-data-cell-content {
+  font-size: 15px;
+}
+
+.app-wrapper {
+  font-family: Source;
 }

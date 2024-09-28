@@ -71,8 +71,8 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
   if (!sortedItems || loading) {
     return (
       <Card className="h-full flex flex-col">
-        <div className="w-full h-full flex flex-col px-2">
-          <Text size="3" className="font-bold mb-2">
+        <div className="w-full h-full flex flex-col">
+          <Text size="3" className="font-bold">
             Business Proportion
           </Text>
           <div className="w-full flex-1 flex justify-center items-center">
@@ -87,8 +87,8 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="w-full h-full flex flex-col px-2">
-        <div className="flex items-center gap-2 mb-2">
+      <div className="w-full h-full flex flex-col">
+        <div className="flex items-center gap-2">
           <Text size="3" className="font-bold">
             Business Proportion
           </Text>
@@ -127,7 +127,7 @@ export const Biz = memo<BizProps>(({ stockId, loading }) => {
             </HoverCard.Root>
           ) : null}
         </div>
-        <div className="flex-1 w-full p-2">
+        <div className="flex-1 w-full p-2 m-[-20px] self-center">
           <ReactEcharts
             style={{ width: '100%', height: '100%' }}
             theme={theme}

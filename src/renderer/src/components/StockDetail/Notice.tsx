@@ -59,7 +59,7 @@ const noticeTitleRender = (title: string) => {
     );
   };
 
-  if (title.length > 20) {
+  if ((year + suf + (year === 1970 ? pre : '')).length > 20) {
     return <Tooltip content={title}>{contentRender()}</Tooltip>;
   }
   return contentRender();

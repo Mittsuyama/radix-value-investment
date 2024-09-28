@@ -1,4 +1,5 @@
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useEffect, useRef } from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useMount } from 'ahooks';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import { Theme } from '@radix-ui/themes';
@@ -11,22 +12,33 @@ import {
   Direcotry,
   staredStockIdListAtom,
   stockBaseInfoListResourceAtom,
+  stockWithReportsDetailListAtom,
   StorageKey,
   themeAtom,
 } from '@renderer/models';
 import { Dashboard, Filter, Analyst, GoodLuck } from '@renderer/pages';
 import '@radix-ui/themes/styles.css';
-import { getStockBaseInfoListByFilterRequeset } from './api';
+import {
+  getBatchStocksWithReportsDetailRequest,
+  getStockBaseInfoListByFilterRequeset,
+} from './api';
 import { fetchFileText } from './api/request';
+import { getStockScore } from './utils';
 
 function App(): JSX.Element {
   const theme = useAtomValue(themeAtom);
   const color = useAtomValue(colorAtom);
   const dir = useAtomValue(dataDirectoryAtom);
+  const favList = useAtomValue(staredStockIdListAtom);
+  const resource = useAtomValue(stockBaseInfoListResourceAtom);
 
   const setStaredList = useSetAtom(staredStockIdListAtom);
   const setCustomed = useSetAtom(customedStockInfoListAtom);
   const setResource = useSetAtom(stockBaseInfoListResourceAtom);
+
+  const [list, setList] = useAtom(stockWithReportsDetailListAtom);
+
+  const fetchingRef = useRef(false);
 
   useMount(async () => {
     const res = await getStockBaseInfoListByFilterRequeset({});
@@ -60,9 +72,30 @@ function App(): JSX.Element {
     }
   });
 
+  useEffect(() => {
+    (async () => {
+      if (!favList.length || fetchingRef.current) {
+        return;
+      }
+      if (favList.some((fav) => !list?.some((item) => item.id === fav))) {
+        fetchingRef.current = true;
+        const res = await getBatchStocksWithReportsDetailRequest(
+          {
+            ids: favList,
+            years: 3,
+          },
+          resource,
+        );
+        const sortedList = res.slice().sort((a, b) => getStockScore(b) - getStockScore(a));
+        setList(sortedList);
+        fetchingRef.current = false;
+      }
+    })();
+  }, [favList, list, resource, setList]);
+
   return (
     <Theme scaling="95%" accentColor={color} appearance={theme} radius="large">
-      <div className="w-svw h-svh flex flex-col">
+      <div className="w-svw h-svh flex flex-col app-wrapper">
         <div className="flex-none">
           <TopMenu />
         </div>

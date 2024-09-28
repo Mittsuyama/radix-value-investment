@@ -120,15 +120,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
                 )
               }
             >
-              Other Data
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() =>
-                info && window.open(`https://data.eastmoney.com/notices/stock/${info.code}.html`)
-              }
-            >
-              Annoucement
+              Eastmoney
             </Button>
             <Button onClick={() => setOpen((pre) => !pre)}>
               <ChatBubbleIcon />
@@ -139,13 +131,16 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
         {info ? (
           <div className="flex items-center gap-4 mb-4 text-gray-10">
             <div>
-              CAP: <span className="font-bold">{formatFinancialNumber(info.totalMarketCap)}</span>
-            </div>
-            <div>
               PE: <span className="font-bold">{info.ttmPE.toFixed(2)}</span>
             </div>
             <div>
               ROE: <span className="font-bold">{info.ttmROE.toFixed(2)}%</span>
+            </div>
+            <div>
+              PB: <span className="font-bold">{info.pb.toFixed(2)}</span>
+            </div>
+            <div>
+              CAP: <span className="font-bold">{formatFinancialNumber(info.totalMarketCap)}</span>
             </div>
             <div>
               CODE: <span className="font-bold">{info.id}</span>
@@ -246,7 +241,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
           </div>
         )}
         <div className="w-full h-80 mb-4 flex gap-4">
-          <div className="flex-1">
+          <div className="flex-1 overflow-hidden">
             <BaseLineChartCard
               title="DSI & DSR"
               reports={info?.reports}
