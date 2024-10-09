@@ -156,36 +156,28 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
           <>
             <div className="'w-full mb-4 flex gap-4 h-64">
               <div className="flex-[6] overflow-hidden">
-                <Profitability
-                  key={`${stockId || stockId}-${month}`}
-                  reports={info?.reports}
-                  cap={info?.totalMarketCap}
-                />
+                <Profitability reports={info?.reports} cap={info?.totalMarketCap} />
               </div>
             </div>
             <div className="'w-full mb-4 flex gap-4 h-64">
               <div className="flex-[4] overflow-hidden">
-                <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
+                <Biz loading={!info} stockId={stockId} />
               </div>
               <div className="flex-[5] overflow-hidden">
-                <Cost key={`${stockId}-${month}`} reports={info?.reports} />
+                <Cost reports={info?.reports} />
               </div>
             </div>
           </>
         ) : (
           <div className="w-full mb-4 flex gap-4 h-80">
             <div className="flex-[6] overflow-hidden">
-              <Profitability
-                key={`${stockId || stockId}-${month}`}
-                reports={info?.reports}
-                cap={info?.totalMarketCap}
-              />
+              <Profitability reports={info?.reports} cap={info?.totalMarketCap} />
             </div>
             <div className="flex-[4] overflow-hidden">
-              <Biz loading={!info} key={`${stockId}-${month}`} stockId={stockId} />
+              <Biz loading={!info} stockId={stockId} />
             </div>
             <div className="flex-[5] overflow-hidden">
-              <Cost key={`${stockId}-${month}`} reports={info?.reports} />
+              <Cost reports={info?.reports} />
             </div>
           </div>
         )}
@@ -193,14 +185,14 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
           <>
             <div className="w-full h-64 mb-4 flex gap-4">
               {balanceSheets.slice(0, 2).map((type) => (
-                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                <div key={type} className="flex-1 overflow-hidden">
                   <BalanceSheetChartCard type={type} reports={info?.reports} />
                 </div>
               ))}
             </div>
             <div className="w-full h-64 mb-4 flex gap-4">
               {balanceSheets.slice(2, 4).map((type) => (
-                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                <div key={type} className="flex-1 overflow-hidden">
                   <BalanceSheetChartCard type={type} reports={info?.reports} />
                 </div>
               ))}
@@ -209,7 +201,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
         ) : (
           <div className="w-full h-80 mb-4 flex gap-4">
             {balanceSheets.slice(0, 4).map((type) => (
-              <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+              <div key={type} className="flex-1 overflow-hidden">
                 <BalanceSheetChartCard type={type} reports={info?.reports} />
               </div>
             ))}
@@ -219,14 +211,14 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
           <>
             <div className="w-full h-80 mb-4 flex gap-4">
               {cashFlowSheets.slice(0, 1).map((type) => (
-                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                <div key={type} className="flex-1 overflow-hidden">
                   <CashFlowStatementCard type={type} reports={info?.reports} />
                 </div>
               ))}
             </div>
             <div className="w-full h-80 mb-4 flex gap-4">
               {cashFlowSheets.slice(1, 3).map((type) => (
-                <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+                <div key={type} className="flex-1 overflow-hidden">
                   <CashFlowStatementCard type={type} reports={info?.reports} />
                 </div>
               ))}
@@ -235,7 +227,7 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
         ) : (
           <div className="w-full h-80 mb-4 flex gap-4">
             {cashFlowSheets.map((type) => (
-              <div key={`${stockId}-${type}-${month}`} className="flex-1 overflow-hidden">
+              <div key={type} className="flex-1 overflow-hidden">
                 <CashFlowStatementCard type={type} reports={info?.reports} />
               </div>
             ))}

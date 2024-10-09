@@ -62,9 +62,10 @@ export const ColorMap = Object.fromEntries(
   Object.entries(Palette).map(([key, value]) => [key, [...Object.values(value)]]),
 ) as Record<ColorType, string[]>;
 
+const STEP = 1;
 export const getColorIndex = (index: number, colorLength: number) => {
-  const times = Math.floor((index * 2) / colorLength);
-  return Math.floor((index * 2 + times) % colorLength);
+  const times = Math.floor((index * STEP) / colorLength);
+  return Math.floor((index * STEP + times) % colorLength);
 };
 
 export const getChartColors = (color: ColorType) => {

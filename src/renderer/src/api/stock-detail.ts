@@ -55,8 +55,8 @@ export const transformToStockWithReportsDetail = (
   const yearReports = reports.filter((item) => item.month === month);
   return {
     ...stock,
-    cfcAvg3: (computeSimpleCFC(yearReports, 3) / stock.totalMarketCap) * 100,
-    cfc: (computeSimpleCFC(yearReports, 1) / stock.totalMarketCap) * 100,
+    fcfAvg3: (computeSimpleCFC(yearReports, 3) / stock.totalMarketCap) * 100,
+    fcf: (computeSimpleCFC(yearReports, 1) / stock.totalMarketCap) * 100,
     reports,
   };
 };

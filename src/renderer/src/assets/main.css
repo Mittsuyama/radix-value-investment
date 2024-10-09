@@ -32,7 +32,7 @@ table td {
 }
 ::-webkit-scrollbar-thumb:hover {
   border-radius: 4px;
-  background: var(--gray-8);
+  background: var(--gray-10);
 }
 
 ::-webkit-scrollbar-track {

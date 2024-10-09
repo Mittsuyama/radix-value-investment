@@ -33,7 +33,7 @@ export const Cost = memo<CostProps>(({ reports }) => {
         'l-glfy-管理费用',
         'l-yffy-研发费用',
         'l-lxfy-利息费用',
-        'l-jlr-净利润',
+        'leading-kfjlr-扣非净利润',
       ]}
     />
   );

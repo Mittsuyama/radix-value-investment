@@ -30,7 +30,7 @@ const computeRecordValue = (
     return getStockScore(record);
   }
   if (type === 'FCF_avg_3') {
-    return record.cfcAvg3;
+    return record.fcfAvg3;
   }
   if (type === 'CAP') {
     return record.totalMarketCap;
@@ -241,8 +241,8 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               <Table.Cell>{record.ttmPE.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.pb.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.GPR.toFixed(2) + '%'}</Table.Cell>
-              <Table.Cell>{record.cfcAvg3.toFixed(2) + '%'}</Table.Cell>
-              <Table.Cell>{record.cfc.toFixed(2) + '%'}</Table.Cell>
+              <Table.Cell>{record.fcfAvg3.toFixed(2) + '%'}</Table.Cell>
+              <Table.Cell>{record.fcf.toFixed(2) + '%'}</Table.Cell>
               <Table.Cell>{(record.totalMarketCap / 100_000_000).toFixed(2)}亿</Table.Cell>
               <Table.Cell>{getStockScore(record)}</Table.Cell>
               <Table.Cell>￥{record.currentPrice}</Table.Cell>

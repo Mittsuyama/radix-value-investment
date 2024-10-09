@@ -12,10 +12,10 @@ export interface FinancialReport {
 
 export interface StockWithReportsDetail extends StockBaseInfo {
   /** 简易计算的近三年平均自由现金流 */
-  cfcAvg3: number;
+  fcfAvg3: number;
 
   /** 简易计算的自由现金流 */
-  cfc: number;
+  fcf: number;
 
   /** 财务报表 */
   reports: FinancialReport[];

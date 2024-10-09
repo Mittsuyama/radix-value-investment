@@ -50,7 +50,7 @@ export const Analyst = memo(() => {
       <div
         key={item.id}
         onClick={() => setSelectedStock(item)}
-        className={cls('py-2 px-4 cursor-pointer rounded', {
+        className={cls('py-2 px-4 cursor-pointer rounded-md', {
           'hover:bg-accent-2': selectedStock?.id !== item.id,
           'bg-accent-4': selectedStock?.id === item.id,
         })}

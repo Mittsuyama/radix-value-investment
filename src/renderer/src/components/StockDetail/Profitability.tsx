@@ -4,8 +4,8 @@ import ReactEcharts from 'echarts-for-react';
 import { Card, Skeleton, Text } from '@radix-ui/themes';
 import { FinancialReport } from '@renderer/types';
 import { colorAtom, themeAtom } from '@renderer/models';
-import { ACCOUNT_ITEM, getChartColors, getColorIndex } from '@renderer/constants';
-import { computeSimpleCFC } from '@renderer/utils';
+import { getChartColors, getColorIndex } from '@renderer/constants';
+import { computeSimpleCFC, getNumberInReport } from '@renderer/utils';
 
 interface ProfitabilityProps {
   reports?: FinancialReport[];
@@ -38,24 +38,29 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
     );
   }
 
-  const ratio = reversedReports?.map((item) => ({
-    year: item.year,
-    value:
-      (Number(item.data[ACCOUNT_ITEM['x-jyhdcsdxjllje-经营活动产生的现金流量净额']]) /
-        Number(item.data[ACCOUNT_ITEM['leading-kfjlr-扣非净利润']])) *
-      100,
-  }));
   const mll = reversedReports?.map((item) => ({
     year: item.year,
-    value: item.data[ACCOUNT_ITEM['leading-xsmll-销售毛利率']],
+    value: getNumberInReport(item.data, 'leading-xsmll-销售毛利率'),
   }));
   const jlr = reversedReports?.map((item) => ({
     year: item.year,
-    value: item.data[ACCOUNT_ITEM['leading-xsjll-销售净利率']],
+    value: getNumberInReport(item.data, 'leading-xsjll-销售净利率'),
+  }));
+  const yylrl = reversedReports?.map((item) => ({
+    year: item.year,
+    value:
+      ((getNumberInReport(item.data, 'l-yysr-营业收入') -
+        getNumberInReport(item.data, 'l-yycb-营业成本') -
+        getNumberInReport(item.data, 'l-xsfy-销售费用') -
+        getNumberInReport(item.data, 'l-glfy-管理费用') -
+        getNumberInReport(item.data, 'l-yffy-研发费用') -
+        Math.max(0, getNumberInReport(item.data, 'l-lxfy-利息费用'))) /
+        getNumberInReport(item.data, 'l-yysr-营业收入')) *
+      100,
   }));
   const roe = reversedReports?.map((item) => ({
     year: item.year,
-    value: item.data[ACCOUNT_ITEM['leading-kfjqroe-扣非加权ROE']],
+    value: getNumberInReport(item.data, 'leading-kfjqroe-扣非加权ROE'),
   }));
   const fcf = reversedReports?.map((item) => ({
     year: item.year,
@@ -63,12 +68,12 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
   }));
   const list = [
     {
-      data: ratio,
-      name: 'Cash/Net Profit',
-    },
-    {
       data: mll,
       name: 'Gross Profit Rate',
+    },
+    {
+      data: yylrl,
+      name: 'Operate Profit',
     },
     {
       data: jlr,
@@ -98,20 +103,13 @@ export const Profitability = memo<ProfitabilityProps>((props) => {
               option={{
                 backgroundColor: 'transparent',
                 grid: {
+                  top: 15,
                   left: 27,
                   right: 0,
                   bottom: 19,
                 },
                 xAxis: {
                   data: reversedReports.map((item) => item.year),
-                },
-                legend: {
-                  data: list.map((item, index) => ({
-                    name: item.name,
-                    itemStyle: {
-                      color: colors[getColorIndex(index, colors.length)],
-                    },
-                  })),
                 },
                 tooltip: {
                   trigger: 'axis',

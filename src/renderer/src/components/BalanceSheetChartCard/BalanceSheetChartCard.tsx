@@ -3,6 +3,7 @@ import { ACCOUNT_ITEM, sheetType2Keys, sheetType2Title } from '@renderer/constan
 import { BalanceSheetType, FinancialReport } from '@renderer/types';
 import { totalKeyRecord } from '@renderer/constants';
 import { BaseLineChartCard } from '@renderer/components/BaselLineChartCard';
+import { getNumberInReport } from '@renderer/utils';
 
 interface BalanceSheetChartCardProps {
   type: BalanceSheetType;
@@ -17,6 +18,7 @@ export const BalanceSheetChartCard = memo<BalanceSheetChartCardProps>(({ type, r
 
   return (
     <BaseLineChartCard
+      key={`${getNumberInReport(reports?.[0]?.data || {}, 'l-jlr-净利润')}-${getNumberInReport(reports?.[0]?.data || {}, 'z-hbzj-货币资金')}`}
       totalName={totalKeyRecord[type].split('-')[2]}
       totals={totals}
       reports={reports}
