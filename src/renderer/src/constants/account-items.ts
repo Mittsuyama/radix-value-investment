@@ -36,6 +36,15 @@ export const NON_CURRENT_ASSET = {
   'z-qtfldjrzc-其他非流动金融资产': 'OTHER_NONCURRENT_FINASSET',
   'z-tzxfdc-投资性房地产': 'INVEST_REALESTATE',
   'z-syqzc-使用权资产': 'USERIGHT_ASSET',
+  'z-yqzc-油气资产': 'OIL_GAS_ASSET',
+  'z-ysbf-应收保费': 'PREMIUM_RECE',
+  'z-ysbfhtzbj-应收分保合同准备金': 'RC_RESERVE_RECE',
+  'z-ysbtk-应收补贴款': 'SUBSIDY_RECE',
+  'z-ysckts-应收出口退税': 'EXPORT_REFUND_RECE',
+  'z-ysfbzk-应收分保账款': 'REINSURE_RECE',
+  'z-ysgl-应收股利': 'DIVIDEND_RECE',
+  'z-yskx-预收款项': 'ADVANCE_RECEIVABLES',
+  'z-yslx-应收利息': 'INTEREST_RECE',
 };
 
 /** 重点关注流动负债的项目 */
@@ -141,15 +150,6 @@ export const ZCFZ_ITEM_TO_KEY = {
   'z-ygyjzjqqqbdjrqtzhsydjrzcfld-以公允价值计量且其变动计入其他综合收益的金融资产（非流动）':
     'FVTOCI_NCFINASSET',
   'z-yjldfz-预计流动负债': 'PREDICT_CURRENT_LIAB',
-  'z-yqzc-油气资产': 'OIL_GAS_ASSET',
-  'z-ysbf-应收保费': 'PREMIUM_RECE',
-  'z-ysbfhtzbj-应收分保合同准备金': 'RC_RESERVE_RECE',
-  'z-ysbtk-应收补贴款': 'SUBSIDY_RECE',
-  'z-ysckts-应收出口退税': 'EXPORT_REFUND_RECE',
-  'z-ysfbzk-应收分保账款': 'REINSURE_RECE',
-  'z-ysgl-应收股利': 'DIVIDEND_RECE',
-  'z-yskx-预收款项': 'ADVANCE_RECEIVABLES',
-  'z-yslx-应收利息': 'INTEREST_RECE',
   'z-yspjjyszk-应收票据及应收账款': 'NOTE_ACCOUNTS_RECE',
   'z-ytycbjldjrfz-以摊余成本计量的金融负债': 'AMORTIZE_COST_FINLIAB',
   'z-ytycbjldjrfzfld-以摊余成本计量的金融负债（非流动）': 'AMORTIZE_COST_NCFINLIAB',

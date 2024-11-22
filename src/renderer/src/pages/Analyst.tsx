@@ -96,7 +96,7 @@ export const Analyst = memo(() => {
 
   return (
     <div className="w-full h-full py-1 flex overflow-hidden">
-      <div className="flex-none overflow-auto w-60 px-2">
+      <div className="flex-none overflow-auto w-60 px-2 pb-2">
         {stockId ? (
           <div className="w-full">
             {titleRender('Current')}
