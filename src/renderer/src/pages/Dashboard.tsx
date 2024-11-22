@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { useMemoizedFn } from 'ahooks';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { Spinner, Button } from '@radix-ui/themes';
-import { ArchiveIcon } from '@radix-ui/react-icons';
+import { ArchiveIcon, ReloadIcon } from '@radix-ui/react-icons';
 import {
   dataDirectoryAtom,
   staredStockIdListAtom,
@@ -35,7 +35,7 @@ export const Dashboard = memo(() => {
       );
     }
 
-    return <StockDetaiTable customed records={list} />;
+    return <StockDetaiTable records={list} />;
   });
 
   return (
@@ -44,6 +44,10 @@ export const Dashboard = memo(() => {
         <div className="mb-4 flex flex-center justify-between gap-4">
           <div className="text-xl font-bold">Dashboard</div>
           <div className="flex gap-4">
+            <Button onClick={() => location.reload()} variant="outline">
+              <ReloadIcon />
+              Reload
+            </Button>
             <Button
               onClick={async () => {
                 const [directory] = await waitForSelectDirectory();

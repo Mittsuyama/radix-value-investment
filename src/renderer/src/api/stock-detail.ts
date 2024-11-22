@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import {
   FinancialReport,
   ReportMonth,
@@ -6,6 +7,7 @@ import {
 } from '@renderer/types';
 import { computeSimpleCFC } from '@renderer/utils';
 import { getStockBaseInfoListByFilterRequeset, FilterConfigs } from './stock-base';
+import { get } from './request';
 import { getTreeFinancialReportsRequest } from './reports';
 
 export interface FilterConfigsWithLocalCompute {
