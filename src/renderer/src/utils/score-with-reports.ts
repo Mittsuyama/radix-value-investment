@@ -13,6 +13,7 @@ const ROEScore: ScoreList = [
   { min: 17.5, max: 20, score: 3 },
   { min: 20, max: 30, score: 3.5 },
   { min: 30, max: 50, score: 4 },
+  { min: 50, max: Number.MAX_SAFE_INTEGER, score: 4.5 },
 ];
 const PEScore: ScoreList = [
   { min: 0, max: 10, score: 2.5 },

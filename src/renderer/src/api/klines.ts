@@ -7,13 +7,19 @@ const url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get';
 export const fetchKLineItemsRequest = async (stockId: string, type: KLineType) => {
   const [code, sType] = stockId.split('.');
 
+  let klt = '101';
+  if (type === KLineType.WEEK) {
+    klt = '102';
+  } else if (type === KLineType.MONTH) {
+    klt = '103';
+  }
+
   const res = await get(url, {
     secid: `${sType.toLowerCase() === 'sh' ? '1' : '0'}.${code}`,
     fields1: 'f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13',
     fields2: 'f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61',
     end: dayjs().add(1, 'day').format('YYYYMMDD'),
-    // 难道是日/周/月？
-    klt: '101',
+    klt,
     beg: '0',
     rtntype: '6',
     fqt: '1',

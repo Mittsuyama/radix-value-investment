@@ -18,7 +18,7 @@ import {
 } from '@renderer/types';
 import { customedStockInfoListAtom, sortConfigAtom } from '@renderer/models';
 import { computeKdj, getStockScore } from '@renderer/utils';
-import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
+// import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
 import { ColoredChangeRate, ColoredText } from '@renderer/components/ColoredChangeRate';
 import { fetchKLineItemsRequest } from '@renderer/api';
@@ -146,22 +146,37 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
   );
 
   const [jMap, setJMap] = useState<Map<string, number>>(new Map());
+  const [weekJMap, setWeekJMap] = useState<Map<string, number>>(new Map());
   useAsyncEffect(
     async function () {
       try {
         const jMap = new Map<string, number>();
+        const weekJMap = new Map<string, number>();
         await Promise.all(
           records.map(async ({ id }) => {
-            const items = await fetchKLineItemsRequest(id, KLineType.DAY);
+            const [items, weekItems] = await Promise.all([
+              fetchKLineItemsRequest(id, KLineType.DAY),
+              fetchKLineItemsRequest(id, KLineType.WEEK),
+            ]);
             const kdj = computeKdj(
               items.map((item) => item.close),
               items.map((item) => item.low),
               items.map((item) => item.high),
             );
             jMap.set(id, kdj.j.slice(-1)[0]);
+            const weekKdj = computeKdj(
+              weekItems.map((item) => item.close),
+              weekItems.map((item) => item.low),
+              weekItems.map((item) => item.high),
+            );
+            weekJMap.set(id, weekKdj.j.slice(-1)[0]);
+            if (id.includes('603444')) {
+              console.log(weekKdj);
+            }
           }),
         );
         setJMap(jMap);
+        setWeekJMap(weekJMap);
       } catch (e) {
         console.error(e);
       }
@@ -238,14 +253,15 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo
-              title="KDJ(J)"
-              info="J Value of KDJ"
+              title="J(Day)"
+              info="J Value of KDJ(Day)"
               sortKey="kdj-j"
               onSort={setSort}
               sortConfig={sort}
               defaultDirection="asc"
             />
           </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>J(Week)</Table.ColumnHeaderCell>
           {customed ? (
             <>
               <Table.ColumnHeaderCell>
@@ -280,6 +296,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
         {sortedRecords.map((record, index) => {
           const customedInfo = customedInfoMap.get(record.id);
           const j = jMap.get(record.id);
+          const weekJ = weekJMap.get(record.id);
           const score = getStockScore(record);
           return (
             <Table.Row key={record.id} className="hover:bg-accent-2">
@@ -320,6 +337,17 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   />
                 )}
               </Table.Cell>
+              <Table.Cell>
+                {typeof weekJ === 'undefined' ? (
+                  '-'
+                ) : (
+                  <ColoredText
+                    text={weekJ.toFixed(2)}
+                    status={weekJ < 20 ? 'down' : weekJ > 80 ? 'up' : 'unchange'}
+                    icon={null}
+                  />
+                )}
+              </Table.Cell>
               {customed ? (
                 <>
                   <Table.Cell>
@@ -344,7 +372,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               <Table.Cell>
                 <div className="flex items-center gap-4">
                   <StaredIconButton id={record.id} variant="ghost" />
-                  <CustomedStockInfoEditButton size="1" id={record.id} variant="ghost" />
+                  {/* <CustomedStockInfoEditButton size="1" id={record.id} variant="ghost" /> */}
                 </div>
               </Table.Cell>
             </Table.Row>

@@ -53,7 +53,6 @@
     "echarts-for-react": "^3.0.2",
     "electron-store": "^8.1.0",
     "jotai": "^2.9.3",
-    "kdj": "^1.0.5",
     "react-router-dom": "^5.0.0",
     "slate": "^0.103.0",
     "slate-react": "^0.110.1"
