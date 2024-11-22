@@ -15,17 +15,16 @@ const ROEScore: ScoreList = [
   { min: 30, max: 50, score: 4 },
 ];
 const PEScore: ScoreList = [
-  { min: 0, max: 10, score: 3 },
-  { min: 10, max: 15, score: 2.5 },
-  { min: 15, max: 20, score: 2 },
-  { min: 20, max: 30, score: 0 },
+  { min: 0, max: 10, score: 2.5 },
+  { min: 10, max: 20, score: 2 },
+  { min: 20, max: 30, score: 1 },
   { min: 30, max: 40, score: -1 },
   { min: 40, max: 50, score: -3 },
   { min: 50, max: 200, score: -10 },
 ];
 const GPRScore: ScoreList = [
-  { min: 10, max: 15, score: 1 },
-  { min: 15, max: 20, score: 1.5 },
+  { min: 10, max: 15, score: 0 },
+  { min: 15, max: 20, score: 1 },
   { min: 20, max: 30, score: 2 },
   { min: 30, max: 50, score: 3 },
   { min: 50, max: Number.MAX_SAFE_INTEGER, score: 4 },
@@ -49,7 +48,7 @@ export const getStockScore = (stock: StockWithReportsDetail) => {
     getScore(stock.ttmPE, PEScore),
     getScore(stock.GPR, GPRScore),
     getScore(stock.fcfAvg3, fcfScore),
-  ].reduce((pre, cur) => pre + cur, 0);
+  ].reduce((pre, cur) => pre + cur);
 };
 
 export const autoSort = (list: StockWithReportsDetail[]) => {

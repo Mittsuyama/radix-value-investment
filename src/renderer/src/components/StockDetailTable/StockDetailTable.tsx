@@ -1,21 +1,36 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import cls from 'classnames';
+import { useAsyncEffect } from 'ahooks';
 import { useAtom, useAtomValue } from 'jotai';
 import { Table, Link, Tooltip } from '@radix-ui/themes';
-import { TriangleUpIcon, TriangleDownIcon, CaretSortIcon } from '@radix-ui/react-icons';
-import { CustomedStockInfo, StockWithReportsDetail, SortConfig, SortKey } from '@renderer/types';
+import {
+  TriangleUpIcon,
+  TriangleDownIcon,
+  CaretSortIcon,
+  DotFilledIcon,
+} from '@radix-ui/react-icons';
+import {
+  CustomedStockInfo,
+  StockWithReportsDetail,
+  SortConfig,
+  SortKey,
+  KLineType,
+} from '@renderer/types';
 import { customedStockInfoListAtom, sortConfigAtom } from '@renderer/models';
-import { getStockScore } from '@renderer/utils';
+import { computeKdj, getStockScore } from '@renderer/utils';
 import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
-import { ColoredChangeRate } from '@renderer/components/ColoredChangeRate';
+import { ColoredChangeRate, ColoredText } from '@renderer/components/ColoredChangeRate';
+import { fetchKLineItemsRequest } from '@renderer/api';
 
 const computeRecordValue = (
   record: StockWithReportsDetail,
   customedInfoMap: Map<string, CustomedStockInfo>,
   type: SortKey,
+  jMap: Map<string, number>,
 ) => {
   const customedInfo = customedInfoMap.get(record.id);
+  const jv = jMap.get(record.id);
   if (type === 'LTPRC') {
     return customedInfo?.latestBuyPrice
       ? ((record.currentPrice - customedInfo.latestBuyPrice) / record.currentPrice) * 100
@@ -34,6 +49,9 @@ const computeRecordValue = (
   }
   if (type === 'CAP') {
     return record.totalMarketCap;
+  }
+  if (type === 'kdj-j') {
+    return jv || NaN;
   }
   return NaN;
 };
@@ -127,11 +145,35 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
     [customedInfoList],
   );
 
+  const [jMap, setJMap] = useState<Map<string, number>>(new Map());
+  useAsyncEffect(
+    async function () {
+      try {
+        const jMap = new Map<string, number>();
+        await Promise.all(
+          records.map(async ({ id }) => {
+            const items = await fetchKLineItemsRequest(id, KLineType.DAY);
+            const kdj = computeKdj(
+              items.map((item) => item.close),
+              items.map((item) => item.low),
+              items.map((item) => item.high),
+            );
+            jMap.set(id, kdj.j.slice(-1)[0]);
+          }),
+        );
+        setJMap(jMap);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [records],
+  );
+
   const sortedRecords = useMemo(() => {
     if (sort) {
       return records.slice().sort((a, b) => {
-        const aNumber = computeRecordValue(a, customedInfoMap, sort.key);
-        const bNumber = computeRecordValue(b, customedInfoMap, sort.key);
+        const aNumber = computeRecordValue(a, customedInfoMap, sort.key, jMap);
+        const bNumber = computeRecordValue(b, customedInfoMap, sort.key, jMap);
         if (Number.isNaN(aNumber)) {
           return 1;
         }
@@ -142,7 +184,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
       });
     }
     return records;
-  }, [records, sort, customedInfoMap]);
+  }, [records, sort, customedInfoMap, jMap]);
 
   return (
     <Table.Root variant="surface">
@@ -194,6 +236,16 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo title="TCR" info="Today Change Rate" />
           </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>
+            <TableHeaderCellWithInfo
+              title="KDJ(J)"
+              info="J Value of KDJ"
+              sortKey="kdj-j"
+              onSort={setSort}
+              sortConfig={sort}
+              defaultDirection="asc"
+            />
+          </Table.ColumnHeaderCell>
           {customed ? (
             <>
               <Table.ColumnHeaderCell>
@@ -227,6 +279,8 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
       <Table.Body>
         {sortedRecords.map((record, index) => {
           const customedInfo = customedInfoMap.get(record.id);
+          const j = jMap.get(record.id);
+          const score = getStockScore(record);
           return (
             <Table.Row key={record.id} className="hover:bg-accent-2">
               <Table.RowHeaderCell>{index + 1}</Table.RowHeaderCell>
@@ -244,10 +298,27 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               <Table.Cell>{record.fcfAvg3.toFixed(2) + '%'}</Table.Cell>
               <Table.Cell>{record.fcf.toFixed(2) + '%'}</Table.Cell>
               <Table.Cell>{(record.totalMarketCap / 100_000_000).toFixed(2)}亿</Table.Cell>
-              <Table.Cell>{getStockScore(record)}</Table.Cell>
+              <Table.Cell>
+                <ColoredText
+                  text={score.toString()}
+                  status={score >= 10 ? 'up' : score <= 6 ? 'down' : 'unchange'}
+                  icon={<DotFilledIcon width={20} height={20} />}
+                />
+              </Table.Cell>
               <Table.Cell>￥{record.currentPrice}</Table.Cell>
               <Table.Cell>
                 <ColoredChangeRate rate={record.changeRate} />
+              </Table.Cell>
+              <Table.Cell>
+                {typeof j === 'undefined' ? (
+                  '-'
+                ) : (
+                  <ColoredText
+                    text={j.toFixed(2)}
+                    status={j < 20 ? 'down' : j > 80 ? 'up' : 'unchange'}
+                    icon={null}
+                  />
+                )}
               </Table.Cell>
               {customed ? (
                 <>
@@ -257,7 +328,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   <Table.Cell>
                     {customedInfo?.latestBuyPrice ? (
                       <ColoredChangeRate
-                        rate={computeRecordValue(record, customedInfoMap, 'LTPRC')}
+                        rate={computeRecordValue(record, customedInfoMap, 'LTPRC', jMap)}
                       />
                     ) : (
                       '-'
@@ -265,7 +336,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   </Table.Cell>
                   <Table.Cell>
                     {customedInfo?.latestBuyDate
-                      ? computeRecordValue(record, customedInfoMap, 'GLTD').toFixed(0) + 'd'
+                      ? computeRecordValue(record, customedInfoMap, 'GLTD', jMap).toFixed(0) + 'd'
                       : '-'}
                   </Table.Cell>
                 </>
