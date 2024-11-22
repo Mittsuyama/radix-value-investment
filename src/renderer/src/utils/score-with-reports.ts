@@ -15,6 +15,13 @@ const ROEScore: ScoreList = [
   { min: 30, max: 50, score: 4 },
   { min: 50, max: Number.MAX_SAFE_INTEGER, score: 4.5 },
 ];
+const roeStdScore: ScoreList = [
+  { min: 0, max: 50, score: 2 },
+  { min: 50, max: 200, score: 1 },
+  { min: 200, max: 400, score: 0 },
+  { min: 400, max: 700, score: -1 },
+  { min: 700, max: Number.MAX_SAFE_INTEGER, score: -2 },
+];
 const PEScore: ScoreList = [
   { min: 0, max: 10, score: 2.5 },
   { min: 10, max: 20, score: 2 },
@@ -29,6 +36,13 @@ const GPRScore: ScoreList = [
   { min: 20, max: 30, score: 2 },
   { min: 30, max: 50, score: 3 },
   { min: 50, max: Number.MAX_SAFE_INTEGER, score: 4 },
+];
+const gprStdScore: ScoreList = [
+  { min: 0, max: 50, score: 2 },
+  { min: 50, max: 200, score: 1 },
+  { min: 200, max: 400, score: 0 },
+  { min: 400, max: 700, score: -1 },
+  { min: 700, max: Number.MAX_SAFE_INTEGER, score: -2 },
 ];
 const fcfScore: ScoreList = [
   { min: 3, max: 5, score: 1 },
@@ -45,10 +59,12 @@ const getScore = (value: number, scoreList: ScoreList) => {
 
 export const getStockScore = (stock: StockWithReportsDetail) => {
   return [
-    getScore(stock.ttmROE, ROEScore),
+    getScore(stock.lastYearRoe, ROEScore),
     getScore(stock.ttmPE, PEScore),
     getScore(stock.GPR, GPRScore),
     getScore(stock.fcfAvg3, fcfScore),
+    getScore(stock.roeStd, roeStdScore),
+    getScore(stock.gprStd, gprStdScore),
   ].reduce((pre, cur) => pre + cur);
 };
 

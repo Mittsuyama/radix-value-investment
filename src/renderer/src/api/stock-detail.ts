@@ -1,14 +1,13 @@
-import dayjs from 'dayjs';
 import {
   FinancialReport,
   ReportMonth,
   StockBaseInfo,
   StockWithReportsDetail,
 } from '@renderer/types';
-import { computeSimpleCFC } from '@renderer/utils';
+import { computeSimpleCFC, standardDeviation } from '@renderer/utils';
 import { getStockBaseInfoListByFilterRequeset, FilterConfigs } from './stock-base';
-import { get } from './request';
 import { getTreeFinancialReportsRequest } from './reports';
+import { ACCOUNT_ITEM } from '@renderer/constants';
 
 export interface FilterConfigsWithLocalCompute {
   ttmPE?: [number, number];
@@ -53,12 +52,23 @@ export const transformToStockWithReportsDetail = (
   stock: StockBaseInfo,
   reports: FinancialReport[],
   month: ReportMonth,
-) => {
+): StockWithReportsDetail => {
   const yearReports = reports.filter((item) => item.month === month);
   return {
     ...stock,
     fcfAvg3: (computeSimpleCFC(yearReports, 3) / stock.totalMarketCap) * 100,
     fcf: (computeSimpleCFC(yearReports, 1) / stock.totalMarketCap) * 100,
+    lastYearRoe: Number(yearReports[0].data[ACCOUNT_ITEM['leading-kfjqroe-扣非加权ROE']]),
+    gprStd: standardDeviation(
+      yearReports.map(
+        (report) => Number(report.data[ACCOUNT_ITEM['leading-xsmll-销售毛利率']]) * 100,
+      ),
+    ),
+    roeStd: standardDeviation(
+      yearReports.map(
+        (report) => Number(report.data[ACCOUNT_ITEM['leading-kfjqroe-扣非加权ROE']]) * 100,
+      ),
+    ),
     reports,
   };
 };
@@ -79,7 +89,7 @@ export const getBatchStocksWithReportsDetailRequest = async (
     }),
   );
 
-  const list = baseInfoList.map<StockWithReportsDetail>((item, index) => {
+  const list = baseInfoList.map((item, index) => {
     const reports = reportsList[index].slice(0, params.years);
     return transformToStockWithReportsDetail(item, reports, month);
   });

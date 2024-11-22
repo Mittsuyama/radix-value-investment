@@ -17,6 +17,15 @@ export interface StockWithReportsDetail extends StockBaseInfo {
   /** 简易计算的自由现金流 */
   fcf: number;
 
+  /** 毛利率标准差 */
+  gprStd: number;
+
+  /** ROE 标准差 */
+  roeStd: number;
+
+  /** 上年年末 roe */
+  lastYearRoe: number;
+
   /** 财务报表 */
   reports: FinancialReport[];
 }

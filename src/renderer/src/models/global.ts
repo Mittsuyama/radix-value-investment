@@ -37,6 +37,8 @@ export const dataDirectoryAtom = atomWithStorage<string | null>(
   },
 );
 export const staredStockIdListAtom = atom<string[]>([]);
+export const jMapAtom = atom<Map<string, number>>(new Map());
+export const weekKJMapAtom = atom<Map<string, number>>(new Map());
 export const customedStockInfoListAtom = atom<CustomedStockInfo[]>([]);
 export const stockReviewEditorOpenAtom = atomWithStorage<boolean>(
   'stock-review-editor-open',

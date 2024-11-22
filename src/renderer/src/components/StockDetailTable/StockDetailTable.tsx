@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo } from 'react';
 import cls from 'classnames';
 import { useAsyncEffect } from 'ahooks';
 import { useAtom, useAtomValue } from 'jotai';
@@ -16,7 +16,12 @@ import {
   SortKey,
   KLineType,
 } from '@renderer/types';
-import { customedStockInfoListAtom, sortConfigAtom } from '@renderer/models';
+import {
+  customedStockInfoListAtom,
+  jMapAtom,
+  sortConfigAtom,
+  weekKJMapAtom,
+} from '@renderer/models';
 import { computeKdj, getStockScore } from '@renderer/utils';
 // import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
@@ -139,14 +144,14 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
   const customedInfoList = useAtomValue(customedStockInfoListAtom);
 
   const [sort, setSort] = useAtom(sortConfigAtom);
+  const [jMap, setJMap] = useAtom(jMapAtom);
+  const [weekJMap, setWeekJMap] = useAtom(weekKJMapAtom);
 
   const customedInfoMap = useMemo(
     () => new Map(customedInfoList.map((item) => [item.id, item])),
     [customedInfoList],
   );
 
-  const [jMap, setJMap] = useState<Map<string, number>>(new Map());
-  const [weekJMap, setWeekJMap] = useState<Map<string, number>>(new Map());
   useAsyncEffect(
     async function () {
       try {
@@ -170,9 +175,6 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               weekItems.map((item) => item.high),
             );
             weekJMap.set(id, weekKdj.j.slice(-1)[0]);
-            if (id.includes('603444')) {
-              console.log(weekKdj);
-            }
           }),
         );
         setJMap(jMap);
@@ -210,13 +212,15 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Industry</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
-            <TableHeaderCellWithInfo title="ROE" info="TTM" />
+            <TableHeaderCellWithInfo title="ROE" info="Last Finnal Year" />
           </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>ROE (STD)</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo title="PE" info="TTM" />
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>PB</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>GPR</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>GPR (STD)</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo
               title="FCF"
@@ -253,15 +257,15 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo
-              title="J(Day)"
-              info="J Value of KDJ(Day)"
+              title="J (Day)"
+              info="J Value of KDJ (Day)"
               sortKey="kdj-j"
               onSort={setSort}
               sortConfig={sort}
               defaultDirection="asc"
             />
           </Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>J(Week)</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>J (Week)</Table.ColumnHeaderCell>
           {customed ? (
             <>
               <Table.ColumnHeaderCell>
@@ -308,13 +312,15 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                 </Link>
               </Table.Cell>
               <Table.Cell>{record.industry}</Table.Cell>
-              <Table.Cell>{record.ttmROE.toFixed(2) + '%'}</Table.Cell>
+              <Table.Cell>{record.lastYearRoe.toFixed(2) + '%'}</Table.Cell>
+              <Table.Cell>{record.roeStd.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.ttmPE.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.pb.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.GPR.toFixed(2) + '%'}</Table.Cell>
+              <Table.Cell>{record.gprStd.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.fcfAvg3.toFixed(2) + '%'}</Table.Cell>
               <Table.Cell>{record.fcf.toFixed(2) + '%'}</Table.Cell>
-              <Table.Cell>{(record.totalMarketCap / 100_000_000).toFixed(2)}亿</Table.Cell>
+              <Table.Cell>￥{(record.totalMarketCap / 100_000_000).toFixed(2)}亿</Table.Cell>
               <Table.Cell>
                 <ColoredText
                   text={score.toString()}
