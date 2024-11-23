@@ -16,11 +16,15 @@ const ROEScore: ScoreList = [
   { min: 50, max: Number.MAX_SAFE_INTEGER, score: 4.5 },
 ];
 const roeStdScore: ScoreList = [
-  { min: 0, max: 50, score: 2 },
-  { min: 50, max: 200, score: 1 },
-  { min: 200, max: 400, score: 0 },
-  { min: 400, max: 700, score: -1 },
-  { min: 700, max: Number.MAX_SAFE_INTEGER, score: -2 },
+  { min: 0, max: 40, score: 2 },
+  { min: 40, max: 100, score: 1.5 },
+  { min: 100, max: 170, score: 1 },
+  { min: 170, max: 250, score: 0.5 },
+  { min: 250, max: 350, score: 0 },
+  { min: 350, max: 490, score: -0.5 },
+  { min: 490, max: 630, score: -1 },
+  { min: 630, max: 820, score: -1.5 },
+  { min: 820, max: Number.MAX_SAFE_INTEGER, score: -2 },
 ];
 const PEScore: ScoreList = [
   { min: 0, max: 10, score: 2.5 },
@@ -39,10 +43,14 @@ const GPRScore: ScoreList = [
 ];
 const gprStdScore: ScoreList = [
   { min: 0, max: 50, score: 2 },
-  { min: 50, max: 200, score: 1 },
-  { min: 200, max: 400, score: 0 },
-  { min: 400, max: 700, score: -1 },
-  { min: 700, max: Number.MAX_SAFE_INTEGER, score: -2 },
+  { min: 50, max: 120, score: 1.5 },
+  { min: 120, max: 200, score: 1 },
+  { min: 200, max: 290, score: 0.5 },
+  { min: 290, max: 400, score: 0 },
+  { min: 400, max: 540, score: -0.5 },
+  { min: 540, max: 700, score: -1 },
+  { min: 700, max: 900, score: -1.5 },
+  { min: 900, max: Number.MAX_SAFE_INTEGER, score: -2 },
 ];
 const fcfScore: ScoreList = [
   { min: 3, max: 5, score: 1 },
@@ -50,6 +58,13 @@ const fcfScore: ScoreList = [
   { min: 8, max: 12, score: 2 },
   { min: 12, max: 15, score: 2.5 },
   { min: 15, max: 100, score: 3 },
+];
+const fcfAvg3Score: ScoreList = [
+  { min: 3, max: 5, score: -1 },
+  { min: 5, max: 8, score: -0.5 },
+  { min: 8, max: 12, score: 0 },
+  { min: 12, max: 15, score: 0.5 },
+  { min: 15, max: 100, score: 1 },
 ];
 
 const getScore = (value: number, scoreList: ScoreList) => {
@@ -62,7 +77,8 @@ export const getStockScore = (stock: StockWithReportsDetail) => {
     getScore(stock.lastYearRoe, ROEScore),
     getScore(stock.ttmPE, PEScore),
     getScore(stock.GPR, GPRScore),
-    getScore(stock.fcfAvg3, fcfScore),
+    getScore(stock.fcf, fcfScore),
+    getScore(stock.fcfAvg3, fcfAvg3Score),
     getScore(stock.roeStd, roeStdScore),
     getScore(stock.gprStd, gprStdScore),
   ].reduce((pre, cur) => pre + cur);

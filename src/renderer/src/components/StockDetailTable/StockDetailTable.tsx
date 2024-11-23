@@ -214,13 +214,13 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo title="ROE" info="Last Finnal Year" />
           </Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>ROE (STD)</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>STD (ROE)</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo title="PE" info="TTM" />
           </Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>PB</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>GPR</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>GPR (STD)</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>STD (GPR)</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo
               title="FCF"
@@ -338,7 +338,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                 ) : (
                   <ColoredText
                     text={j.toFixed(2)}
-                    status={j < 20 ? 'down' : j > 80 ? 'up' : 'unchange'}
+                    status={j < 0 ? 'down' : j > 90 ? 'up' : 'unchange'}
                     icon={null}
                   />
                 )}
@@ -349,7 +349,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                 ) : (
                   <ColoredText
                     text={weekJ.toFixed(2)}
-                    status={weekJ < 20 ? 'down' : weekJ > 80 ? 'up' : 'unchange'}
+                    status={weekJ < 0 ? 'down' : weekJ > 90 ? 'up' : 'unchange'}
                     icon={null}
                   />
                 )}

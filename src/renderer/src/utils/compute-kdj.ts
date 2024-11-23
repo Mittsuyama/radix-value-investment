@@ -14,7 +14,8 @@ export const computeKdj = (
     const c = close[i];
     const hh = Math.max(...high.slice(i - n + 1, i + 1));
     const ll = Math.min(...low.slice(i - n + 1, i + 1));
-    const r = ((c - ll) / (hh - ll)) * 100 || 50;
+    const tmp = ((c - ll) / (hh - ll)) * 100;
+    const r = Number.isNaN(tmp) ? 50 : tmp;
     rsv.push(r);
     if (i < n - 1) {
       k.push(0);
