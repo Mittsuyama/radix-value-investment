@@ -2,6 +2,8 @@ export * from './business';
 export * from './global';
 export * from './klines';
 export * from './leading-index';
+export * from './market';
 export * from './reports';
+export * from './safe-fs';
 export * from './stock-base';
 export * from './stock-detail';

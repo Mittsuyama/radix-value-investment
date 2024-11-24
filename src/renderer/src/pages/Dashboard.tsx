@@ -1,20 +1,14 @@
 import { memo } from 'react';
 import { useMemoizedFn } from 'ahooks';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { Spinner, Button } from '@radix-ui/themes';
 import { ArchiveIcon, ReloadIcon } from '@radix-ui/react-icons';
-import {
-  dataDirectoryAtom,
-  staredStockIdListAtom,
-  stockWithReportsDetailListAtom,
-} from '@renderer/models';
+import { staredStockIdListAtom, stockWithReportsDetailListAtom } from '@renderer/models';
 import { StockDetaiTable } from '@renderer/components/StockDetailTable';
-import { waitForSelectDirectory } from '@renderer/api/request';
 
 export const Dashboard = memo(() => {
   const favList = useAtomValue(staredStockIdListAtom);
 
-  const setDir = useSetAtom(dataDirectoryAtom);
   const list = useAtomValue(stockWithReportsDetailListAtom);
 
   const contentRedender = useMemoizedFn(() => {
@@ -47,16 +41,6 @@ export const Dashboard = memo(() => {
             <Button onClick={() => location.reload()} variant="outline">
               <ReloadIcon />
               Reload
-            </Button>
-            <Button
-              onClick={async () => {
-                const [directory] = await waitForSelectDirectory();
-                setDir(directory);
-                location.reload();
-              }}
-              value="solid"
-            >
-              Data Directory
             </Button>
           </div>
         </div>

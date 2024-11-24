@@ -20,6 +20,7 @@ export enum StorageKey {
 export enum Direcotry {
   REVIEW = '/review/',
   GLOBAL = '/global/',
+  REPORTS = '/reports/',
 }
 
 export const colorAtom = atomWithStorage<ColorType>('color', 'indigo', undefined, {

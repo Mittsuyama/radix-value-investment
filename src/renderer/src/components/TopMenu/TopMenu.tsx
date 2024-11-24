@@ -58,7 +58,9 @@ const MENU_ITEM_LIST: Array<{ title: string; href: string }> = [
   { title: 'Dashboard', href: '/dashboard' },
   { title: 'Analyst', href: '/analyst' },
   // { title: 'Filter', href: '/filter' },
+  { title: 'Market', href: '/market' },
   { title: 'Good Luck', href: '/goodluck' },
+  { title: 'Settings', href: '/settings' },
 ];
 
 export const TopMenu = memo(() => {

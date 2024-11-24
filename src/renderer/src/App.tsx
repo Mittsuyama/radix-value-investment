@@ -8,7 +8,6 @@ import { TopMenu } from '@renderer/components/TopMenu';
 import {
   colorAtom,
   customedStockInfoListAtom,
-  dataDirectoryAtom,
   Direcotry,
   staredStockIdListAtom,
   stockBaseInfoListResourceAtom,
@@ -16,19 +15,18 @@ import {
   StorageKey,
   themeAtom,
 } from '@renderer/models';
-import { Dashboard, Filter, Analyst, GoodLuck } from '@renderer/pages';
+import { Dashboard, Filter, Analyst, GoodLuck, Market, Settings } from '@renderer/pages';
 import '@radix-ui/themes/styles.css';
 import {
   getBatchStocksWithReportsDetailRequest,
   getStockBaseInfoListByFilterRequeset,
+  safelyReadFileText,
 } from './api';
-import { fetchFileText } from './api/request';
 import { getStockScore } from './utils';
 
 function App(): JSX.Element {
   const theme = useAtomValue(themeAtom);
   const color = useAtomValue(colorAtom);
-  const dir = useAtomValue(dataDirectoryAtom);
   const favList = useAtomValue(staredStockIdListAtom);
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
 
@@ -47,29 +45,23 @@ function App(): JSX.Element {
   });
 
   useMount(async () => {
-    if (dir) {
-      const res = await fetchFileText(
-        `${dir}${Direcotry.GLOBAL}${StorageKey.CUSTOMED_STOCK_INFO_LIST}.json`,
-      );
-      try {
-        const data = JSON.parse(res);
-        setCustomed(data);
-      } catch {
-        // do nothing
-      }
+    const res = await safelyReadFileText(
+      `${Direcotry.GLOBAL}${StorageKey.CUSTOMED_STOCK_INFO_LIST}.json`,
+    );
+    try {
+      const data = JSON.parse(res);
+      setCustomed(data);
+    } catch {
+      // do nothing
     }
   });
 
   useMount(async () => {
-    const res = await fetchFileText(
-      `${dir}${Direcotry.GLOBAL}${StorageKey.SARED_STOCK_ID_LIST}.json`,
+    const res = await safelyReadFileText(
+      `${Direcotry.GLOBAL}${StorageKey.SARED_STOCK_ID_LIST}.json`,
     );
-    try {
-      const data = JSON.parse(res);
-      setStaredList(data);
-    } catch {
-      // do nothing
-    }
+    const data = JSON.parse(res);
+    setStaredList(data);
   });
 
   useEffect(() => {
@@ -105,7 +97,9 @@ function App(): JSX.Element {
             <Route exact path="/dashboard" component={Dashboard} />
             <Route exact path="/analyst" component={Analyst} />
             <Route exact path="/filter" component={Filter} />
+            <Route exact path="/market" component={Market} />
             <Route exact path="/goodluck" component={GoodLuck} />
+            <Route exact path="/settings" component={Settings} />
             <Route path="">
               <Redirect to="/dashboard" />
             </Route>

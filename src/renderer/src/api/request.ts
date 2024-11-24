@@ -4,6 +4,13 @@ export const fetchFileText = async (filepath: string) => {
   return await window.electron.ipcRenderer.invoke('fetchFileText', filepath);
 };
 
+export const fetchFileTextListUnderDirectory = async (dir: string) => {
+  return (await window.electron.ipcRenderer.invoke(
+    'fetchFileTextListUnderDirectory',
+    dir,
+  )) as string[];
+};
+
 export const waitForWriteFile = async (filepath: string, text: string) => {
   return await window.electron.ipcRenderer.invoke('waitForWriteFile', filepath, text);
 };

@@ -10,6 +10,17 @@ export const createFileIpcHandle = (): void => {
       return undefined;
     }
   });
+  ipcMain.handle('fetchFileTextListUnderDirectory', async (_, dir: string) => {
+    try {
+      if (!fs.statSync(dir).isDirectory) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    } catch {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    const filenameList = fs.readdirSync(dir);
+    return filenameList.map((filename) => fs.readFileSync(`${dir}/${filename}`), 'utf8');
+  });
   ipcMain.handle('waitForWriteFile', async (_, filepath: string, text: string) => {
     const filepahtSplitResult = filepath.split('/');
     const path = filepahtSplitResult.slice(0, filepahtSplitResult.length - 1).join('/');
