@@ -1,20 +1,22 @@
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import cls from 'classnames';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useAsyncEffect } from 'ahooks';
-import { Spinner, Badge, Button, DropdownMenu, Skeleton } from '@radix-ui/themes';
-import { ChatBubbleIcon, Link2Icon } from '@radix-ui/react-icons';
+import { Spinner, Badge, Button, DropdownMenu, Skeleton, HoverCard, Table } from '@radix-ui/themes';
+import { ChatBubbleIcon, Link2Icon, DotFilledIcon } from '@radix-ui/react-icons';
 import { getBatchStocksWithReportsDetailRequest } from '@renderer/api';
 import {
   reportMonthAtom,
   stockBaseInfoListResourceAtom,
   stockReviewEditorOpenAtom,
+  useFractileIndices,
 } from '@renderer/models';
 import { BalanceSheetType, ReportMonth, StockWithReportsDetail } from '@renderer/types';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
 import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
-import { formatFinancialNumber } from '@renderer/utils';
+import { computeScore, computeSingleScore, formatFinancialNumber } from '@renderer/utils';
 import { BalanceSheetChartCard } from '@renderer/components/BalanceSheetChartCard';
+import { ColoredText } from '@renderer/components/ColoredChangeRate';
 import {
   CashFlowStatementCard,
   CashFlowStatementType,
@@ -47,12 +49,13 @@ interface StockDetailProps {
 }
 
 export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
-  const [maskLoading, setMaskLoading] = useState(true);
   const [month, setMonth] = useAtom(reportMonthAtom);
-
   const review = useAtomValue(stockReviewEditorOpenAtom);
-  const setOpen = useSetAtom(stockReviewEditorOpenAtom);
   const resource = useAtomValue(stockBaseInfoListResourceAtom);
+  const setOpen = useSetAtom(stockReviewEditorOpenAtom);
+  const { indices, scoreFractiles } = useFractileIndices();
+
+  const [maskLoading, setMaskLoading] = useState(true);
   const [info, setInfo] = useState<StockWithReportsDetail | null>(null);
 
   useAsyncEffect(async () => {
@@ -71,6 +74,11 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
       setMaskLoading(false);
     }
   }, [stockId, month]);
+
+  const score = useMemo(
+    () => (indices && info ? computeScore(info, indices) : NaN),
+    [indices, info],
+  );
 
   return (
     <div className="relative w-full h-full overflow-y-auto overflow-x-hidden">
@@ -131,6 +139,55 @@ export const StockDetail = memo<StockDetailProps>(({ stockId }) => {
         </div>
         {info ? (
           <div className="flex items-center gap-4 mb-4 text-gray-10">
+            <HoverCard.Root>
+              <HoverCard.Trigger>
+                <div>
+                  <ColoredText
+                    text={Number.isNaN(score) ? '-' : score.toFixed(2).toString()}
+                    className="font-sans font-normal cursor-pointer"
+                    status={
+                      Number.isNaN(score) || !scoreFractiles
+                        ? 'unchange'
+                        : score >= scoreFractiles[1]
+                          ? 'up'
+                          : score <= scoreFractiles[0]
+                            ? 'down'
+                            : 'unchange'
+                    }
+                    icon={<DotFilledIcon width={20} height={20} />}
+                  />
+                </div>
+              </HoverCard.Trigger>
+              <HoverCard.Content>
+                {info && indices ? (
+                  <Table.Root variant="surface">
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Value</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Score</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Market</Table.ColumnHeaderCell>
+                      </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                      {indices.map((item) => {
+                        const value = item.compute(info, info.reports[0].data);
+                        return (
+                          <Table.Row key={item.title} className="hover:bg-accent-2">
+                            <Table.RowHeaderCell>{item.title}</Table.RowHeaderCell>
+                            <Table.Cell>{value.toFixed(2)}</Table.Cell>
+                            <Table.Cell>{computeSingleScore(info, item).toFixed(2)}</Table.Cell>
+                            <Table.Cell>
+                              {`[${item.values[0].toFixed(2)}, ${item.values[1].toFixed(2)}]`}
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
+                    </Table.Body>
+                  </Table.Root>
+                ) : null}
+              </HoverCard.Content>
+            </HoverCard.Root>
             <div>
               PE: <span className="font-bold">{info.ttmPE.toFixed(2)}</span>
             </div>

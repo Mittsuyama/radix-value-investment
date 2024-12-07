@@ -1,5 +1,10 @@
 import { StorageKey } from '@renderer/models';
-import { fetchFileText, waitForWriteFile, fetchFileTextListUnderDirectory } from './request';
+import {
+  fetchFileText,
+  waitForWriteFile,
+  fetchFileTextListUnderDirectory,
+  waitForWriteBatchFileTextUnderDirectory,
+} from './request';
 
 const getSettingHref = () => location.href.replace(location.hash, '#/settings');
 const assertDirSelected = () => {
@@ -18,15 +23,23 @@ const assertDirSelected = () => {
 
 export const safelyReadFileText = async (pathname: string) => {
   const prefix = assertDirSelected();
-  return await fetchFileText(`${prefix}${pathname}`);
+  return await fetchFileText([prefix, pathname]);
 };
 
-export const safelyWriteFileText = async (pathname: string, text: string) => {
+export const safelyWriteFileText = async (path: string, filename: string, text: string) => {
   const prefix = assertDirSelected();
-  return await waitForWriteFile(`${prefix}${pathname}`, text);
+  return await waitForWriteFile([prefix, path], filename, text);
 };
 
 export const safelyReadFileTextListUnderDirectory = async (dir: string) => {
   const prefix = assertDirSelected();
-  return await fetchFileTextListUnderDirectory(`${prefix}${dir}`);
+  return await fetchFileTextListUnderDirectory([prefix, dir]);
+};
+
+export const safelyWriteBatchFileTextUnderDirectory = async (
+  dir: string,
+  files: Array<{ name: string; text: string }>,
+) => {
+  const prefix = assertDirSelected();
+  return await waitForWriteBatchFileTextUnderDirectory(`${prefix}${dir}`, files);
 };

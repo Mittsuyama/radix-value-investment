@@ -1,18 +1,25 @@
 import { ServiceError } from '@renderer/types';
 
-export const fetchFileText = async (filepath: string) => {
-  return await window.electron.ipcRenderer.invoke('fetchFileText', filepath);
+export const fetchFileText = async (paths: string[]) => {
+  return await window.electron.ipcRenderer.invoke('fetchFileText', paths);
 };
 
-export const fetchFileTextListUnderDirectory = async (dir: string) => {
+export const fetchFileTextListUnderDirectory = async (paths: string[]) => {
   return (await window.electron.ipcRenderer.invoke(
     'fetchFileTextListUnderDirectory',
-    dir,
+    paths,
   )) as string[];
 };
 
-export const waitForWriteFile = async (filepath: string, text: string) => {
-  return await window.electron.ipcRenderer.invoke('waitForWriteFile', filepath, text);
+export const waitForWriteBatchFileTextUnderDirectory = async (
+  dir: string,
+  files: Array<{ name: string; text: string }>,
+) => {
+  await window.electron.ipcRenderer.invoke('waitForWriteBatchFileTextUnderDirectory', dir, files);
+};
+
+export const waitForWriteFile = async (paths: string[], filename: string, text: string) => {
+  return await window.electron.ipcRenderer.invoke('waitForWriteFile', paths, filename, text);
 };
 
 export const waitForSelectFile = async () => {

@@ -1,6 +1,5 @@
 import { useMemoizedFn } from 'ahooks';
 import { useAtomValue } from 'jotai';
-import { filterStocks } from '@renderer/api';
 import { stockBaseInfoListResourceAtom } from '@renderer/models';
 import { useHistory } from 'react-router-dom';
 
@@ -12,13 +11,8 @@ export const useRandomlyPickOneStock = () => {
     if (!resource) {
       return;
     }
-    const option = filterStocks(resource, {
-      ttmROE: [15, 1000],
-      ttmPE: [0, 20],
-      GPR: [25, 1000],
-      yearsInMarket: [5, 1000],
-    })
-      .filter((item) => item.totalMarketCap > 50_0000_0000)
+    const option = resource
+      .filter((item) => item.totalMarketCap > 10_000_000_000)
       .sort(() => Math.random() - 0.5)[0];
     history.push(`/analyst?id=${option.id}`);
   });

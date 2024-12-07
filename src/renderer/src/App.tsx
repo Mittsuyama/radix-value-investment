@@ -39,7 +39,7 @@ function App(): JSX.Element {
   const fetchingRef = useRef(false);
 
   useMount(async () => {
-    const res = await getStockBaseInfoListByFilterRequeset({});
+    const res = await getStockBaseInfoListByFilterRequeset({ isOverFiveYear: true });
     res.sort((a, b) => b.totalMarketCap - a.totalMarketCap);
     setResource(res);
   });

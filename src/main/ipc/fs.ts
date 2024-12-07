@@ -1,8 +1,20 @@
 import { ipcMain, dialog } from 'electron';
 import fs from 'fs';
+import path from 'path';
+
+const assureDirExit = (dir: string) => {
+  try {
+    if (!fs.statSync(dir).isDirectory) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
 
 export const createFileIpcHandle = (): void => {
-  ipcMain.handle('fetchFileText', async (_, filepath: string) => {
+  ipcMain.handle('fetchFileText', async (_, paths: string[]) => {
+    const filepath = path.join(...paths);
     try {
       const data = fs.readFileSync(filepath, 'utf8');
       return data;
@@ -10,29 +22,37 @@ export const createFileIpcHandle = (): void => {
       return undefined;
     }
   });
-  ipcMain.handle('fetchFileTextListUnderDirectory', async (_, dir: string) => {
-    try {
-      if (!fs.statSync(dir).isDirectory) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-    } catch {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+  ipcMain.handle('fetchFileTextListUnderDirectory', async (_, paths: string[]) => {
+    const dir = path.join(...paths);
+    assureDirExit(dir);
     const filenameList = fs.readdirSync(dir);
-    return filenameList.map((filename) => fs.readFileSync(`${dir}/${filename}`), 'utf8');
+    return await Promise.all(
+      filenameList.map(
+        (name) =>
+          new Promise<string>((res) => {
+            fs.readFile(path.join(dir, name), 'utf-8', (_, data) => res(data));
+          }),
+      ),
+    );
   });
-  ipcMain.handle('waitForWriteFile', async (_, filepath: string, text: string) => {
-    const filepahtSplitResult = filepath.split('/');
-    const path = filepahtSplitResult.slice(0, filepahtSplitResult.length - 1).join('/');
-    try {
-      const dir = fs.statSync(path);
-      if (!dir.isDirectory) {
-        fs.mkdirSync(path);
-      }
-    } catch {
-      fs.mkdirSync(path);
-    }
-    const data = fs.writeFileSync(filepath, text, 'utf-8');
+  ipcMain.handle(
+    'waitForWriteBatchFileTextUnderDirectory',
+    async (_, dir: string, files: Array<{ name: string; text: string }>) => {
+      assureDirExit(dir);
+      await Promise.all(
+        files.map(
+          ({ name, text }) =>
+            new Promise((res) => {
+              fs.writeFile(path.join(dir, name), text, 'utf-8', res);
+            }),
+        ),
+      );
+    },
+  );
+  ipcMain.handle('waitForWriteFile', async (_, paths: string[], filename: string, text: string) => {
+    const pathname = path.join(...paths);
+    assureDirExit(pathname);
+    const data = fs.writeFileSync(path.join(pathname, filename), text, 'utf-8');
     return data;
   });
   ipcMain.handle('waitForSelectFile', async () => {

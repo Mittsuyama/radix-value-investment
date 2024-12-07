@@ -1,15 +1,10 @@
 import { memo, useState } from 'react';
-import { useAtom, useAtomValue } from 'jotai';
+import { useMemoizedFn } from 'ahooks';
+import { useAtom } from 'jotai';
 import { ButtonProps, Button, Dialog, Flex, Text, TextField } from '@radix-ui/themes';
 import { Pencil1Icon } from '@radix-ui/react-icons';
-import {
-  customedStockInfoListAtom,
-  dataDirectoryAtom,
-  Direcotry,
-  StorageKey,
-} from '@renderer/models';
-import { useMemoizedFn } from 'ahooks';
-import { waitForWriteFile } from '@renderer/api/request';
+import { safelyWriteFileText } from '@renderer/api';
+import { customedStockInfoListAtom, Direcotry, StorageKey } from '@renderer/models';
 
 interface CustomedStockInfoEditButtonProps extends Pick<ButtonProps, 'variant' | 'size'> {
   id: string;
@@ -17,7 +12,6 @@ interface CustomedStockInfoEditButtonProps extends Pick<ButtonProps, 'variant' |
 
 export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps>(
   ({ id, ...rest }) => {
-    const dir = useAtomValue(dataDirectoryAtom);
     const [customedInfoList, setCustomedInfoList] = useAtom(customedStockInfoListAtom);
     const [defaultInfo] = useState(customedInfoList.find((item) => item.id === id));
     const [values, setValues] = useState<{
@@ -39,12 +33,11 @@ export const CustomedStockInfoEditButton = memo<CustomedStockInfoEditButtonProps
           },
         ];
         setCustomedInfoList(newData);
-        if (dir) {
-          await waitForWriteFile(
-            `${dir}${Direcotry.GLOBAL}${StorageKey.CUSTOMED_STOCK_INFO_LIST}.json`,
-            JSON.stringify(newData),
-          );
-        }
+        await safelyWriteFileText(
+          Direcotry.GLOBAL,
+          `${StorageKey.CUSTOMED_STOCK_INFO_LIST}.json`,
+          JSON.stringify(newData),
+        );
       }
     });
 

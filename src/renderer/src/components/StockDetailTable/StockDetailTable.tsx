@@ -20,9 +20,10 @@ import {
   customedStockInfoListAtom,
   jMapAtom,
   sortConfigAtom,
+  useFractileIndices,
   weekKJMapAtom,
 } from '@renderer/models';
-import { computeKdj, getStockScore } from '@renderer/utils';
+import { computeKdj, computeScore, getStockScore } from '@renderer/utils';
 // import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
 import { ColoredChangeRate, ColoredText } from '@renderer/components/ColoredChangeRate';
@@ -140,12 +141,17 @@ interface StockDetaiTableProps {
   customed?: boolean;
 }
 
+interface TableRecord extends StockWithReportsDetail {
+  score: number;
+}
+
 export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }) => {
   const customedInfoList = useAtomValue(customedStockInfoListAtom);
 
   const [sort, setSort] = useAtom(sortConfigAtom);
   const [jMap, setJMap] = useAtom(jMapAtom);
   const [weekJMap, setWeekJMap] = useAtom(weekKJMapAtom);
+  const { indices, scoreFractiles } = useFractileIndices();
 
   const customedInfoMap = useMemo(
     () => new Map(customedInfoList.map((item) => [item.id, item])),
@@ -186,11 +192,45 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
     [records],
   );
 
+  const tableRecords = useMemo(() => {
+    return records.map<TableRecord>((item) => ({
+      ...item,
+      score: indices ? computeScore(item, indices) : NaN,
+    }));
+  }, [records, indices]);
+
   const sortedRecords = useMemo(() => {
+    const computeRecordValue = (record: TableRecord, type: SortKey) => {
+      const customedInfo = customedInfoMap.get(record.id);
+      const jv = jMap.get(record.id);
+      if (type === 'LTPRC') {
+        return customedInfo?.latestBuyPrice
+          ? ((record.currentPrice - customedInfo.latestBuyPrice) / record.currentPrice) * 100
+          : NaN;
+      }
+      if (type === 'GLTD') {
+        return customedInfo?.latestBuyDate
+          ? (Date.now() - new Date(customedInfo.latestBuyDate).getTime()) / 86400_000
+          : NaN;
+      }
+      if (type === 'score') {
+        return record.score;
+      }
+      if (type === 'FCF_avg_3') {
+        return record.fcfAvg3;
+      }
+      if (type === 'CAP') {
+        return record.totalMarketCap;
+      }
+      if (type === 'kdj-j') {
+        return jv || NaN;
+      }
+      return NaN;
+    };
     if (sort) {
-      return records.slice().sort((a, b) => {
-        const aNumber = computeRecordValue(a, customedInfoMap, sort.key, jMap);
-        const bNumber = computeRecordValue(b, customedInfoMap, sort.key, jMap);
+      return tableRecords.slice().sort((a, b) => {
+        const aNumber = computeRecordValue(a, sort.key);
+        const bNumber = computeRecordValue(b, sort.key);
         if (Number.isNaN(aNumber)) {
           return 1;
         }
@@ -200,8 +240,8 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
         return sort.direction === 'asc' ? aNumber - bNumber : bNumber - aNumber;
       });
     }
-    return records;
-  }, [records, sort, customedInfoMap, jMap]);
+    return tableRecords;
+  }, [tableRecords, sort, customedInfoMap, jMap]);
 
   return (
     <Table.Root variant="surface">
@@ -301,7 +341,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           const customedInfo = customedInfoMap.get(record.id);
           const j = jMap.get(record.id);
           const weekJ = weekJMap.get(record.id);
-          const score = getStockScore(record);
+          const score = record.score;
           return (
             <Table.Row key={record.id} className="hover:bg-accent-2">
               <Table.RowHeaderCell>{index + 1}</Table.RowHeaderCell>
@@ -323,8 +363,16 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               <Table.Cell>￥{(record.totalMarketCap / 100_000_000).toFixed(2)}亿</Table.Cell>
               <Table.Cell>
                 <ColoredText
-                  text={score.toString()}
-                  status={score >= 10 ? 'up' : score <= 6 ? 'down' : 'unchange'}
+                  text={Number.isNaN(score) ? '-' : score.toFixed(2).toString()}
+                  status={
+                    Number.isNaN(score) || !scoreFractiles
+                      ? 'unchange'
+                      : score >= scoreFractiles[1]
+                        ? 'up'
+                        : score <= scoreFractiles[0]
+                          ? 'down'
+                          : 'unchange'
+                  }
                   icon={<DotFilledIcon width={20} height={20} />}
                 />
               </Table.Cell>
