@@ -49,9 +49,11 @@ export const Market = memo(() => {
 
   const onFetch = useMemoizedFn(async () => {
     if (!fetchingRef.current) {
+      console.info('is not fetching');
       return;
     }
     if (!baseList || !details) {
+      console.error(!baseList ? 'no baseList' : 'no ketails');
       return;
     }
     const batch = 10;

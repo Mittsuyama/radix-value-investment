@@ -31,7 +31,7 @@ export const waitForSelectDirectory = async () => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const get = async (url: string, params?: any) => {
+export const get = async (url: string, params?: Record<string, string>) => {
   const res = await window.electron.ipcRenderer.invoke('axios', 'get', url, params);
   if (!res.isSuccess) {
     throw new ServiceError(res.status, res.message);

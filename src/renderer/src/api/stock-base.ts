@@ -52,46 +52,54 @@ export const getStockBaseInfoListByFilterRequeset = async (
     filter += `(PBNEWMRQ<=${maxPB})`;
   }
 
-  const search = new URLSearchParams({
-    st: 'CHANGE_RATE',
-    sr: '-1',
-    ps: '9999',
-    p: '1',
-    sty: 'SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,NEW_PRICE,CHANGE_RATE,VOLUME_RATIO,HIGH_PRICE,LOW_PRICE,PRE_CLOSE_PRICE,VOLUME,DEAL_AMOUNT,TURNOVERRATE,PE9,TOTAL_MARKET_CAP,ROE_WEIGHT,LISTING_DATE,INDUSTRY,PBNEWMRQ,SALE_GPR',
-    filter,
-    source: 'SELECT_SECURITIES',
-    client: 'WEB',
-    size: '9999',
-  });
-  const res = await get(`${url}?${search.toString()}`);
+  const list = await Promise.all(
+    Array.from({ length: 6 }).map(async (_, index) => {
+      try {
+        const res = await get(url, {
+          st: 'CHANGE_RATE',
+          sr: '-1',
+          ps: '1000',
+          p: `${index + 1}`,
+          sty: 'SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,NEW_PRICE,CHANGE_RATE,VOLUME_RATIO,HIGH_PRICE,LOW_PRICE,PRE_CLOSE_PRICE,VOLUME,DEAL_AMOUNT,TURNOVERRATE,PE9,TOTAL_MARKET_CAP,ROE_WEIGHT,LISTING_DATE,INDUSTRY,PBNEWMRQ,SALE_GPR',
+          filter,
+          source: 'SELECT_SECURITIES',
+          client: 'WEB',
+        });
 
-  if (!Array.isArray(res?.result?.data)) {
-    return [];
-  }
+        if (!Array.isArray(res?.result?.data)) {
+          return [];
+        }
 
-  return makeSureiIsArray(res.result.data).map<StockBaseInfo>((item) => {
-    const { SECUCODE } = item;
-    const [code, stockExchangeName] = SECUCODE.split('.');
+        return makeSureiIsArray(res.result.data).map<StockBaseInfo>((item) => {
+          const { SECUCODE } = item;
+          const [code, stockExchangeName] = SECUCODE.split('.');
 
-    const ttmPE = item['PE9'];
-    const pb = item['PBNEWMRQ'];
-    const ttmROE = (pb / ttmPE) * 100;
+          const ttmPE = item['PE9'];
+          const pb = item['PBNEWMRQ'];
+          const ttmROE = (pb / ttmPE) * 100;
 
-    return {
-      id: SECUCODE,
-      code,
-      stockExchangeName,
-      name: item['SECURITY_NAME_ABBR'],
-      roe: item['ROE_WEIGHT'],
-      totalMarketCap: item['TOTAL_MARKET_CAP'],
-      industry: item['INDUSTRY'],
-      GPR: Number(item['SALE_GPR']) || 0,
-      ttmPE,
-      pb,
-      ttmROE,
-      currentPrice: item.NEW_PRICE,
-      changeRate: item.CHANGE_RATE,
-      years: (Date.now() - new Date(item.LISTING_DATE).getTime()) / (86400_000 * 365),
-    };
-  });
+          return {
+            id: SECUCODE,
+            code,
+            stockExchangeName,
+            name: item['SECURITY_NAME_ABBR'],
+            roe: item['ROE_WEIGHT'],
+            totalMarketCap: item['TOTAL_MARKET_CAP'],
+            industry: item['INDUSTRY'],
+            GPR: Number(item['SALE_GPR']) || 0,
+            ttmPE,
+            pb,
+            ttmROE,
+            currentPrice: item.NEW_PRICE,
+            changeRate: item.CHANGE_RATE,
+            years: (Date.now() - new Date(item.LISTING_DATE).getTime()) / (86400_000 * 365),
+          };
+        });
+      } catch {
+        return [];
+      }
+    }),
+  );
+
+  return list.reduce((pre, cur) => [...pre, ...cur], []);
 };

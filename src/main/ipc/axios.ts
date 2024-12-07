@@ -29,6 +29,7 @@ export const createAxiosIpcHandle = (): void => {
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      console.error('request failed: ', `${url}?${new URLSearchParams(params).toString()}`);
       return {
         isSuccess: false,
         status: e.status || 500,

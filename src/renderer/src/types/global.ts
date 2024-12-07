@@ -17,7 +17,7 @@ export interface CustomedStockInfo {
   review?: string;
 }
 
-export type SortKey = 'LTPRC' | 'GLTD' | 'score' | 'FCF_avg_3' | 'CAP' | 'kdj-j';
+export type SortKey = 'LTPRC' | 'GLTD' | 'score' | 'FCF_avg_3' | 'CAP' | 'kdj-j' | 'kdj-j-week';
 
 export interface SortConfig {
   direction: 'asc' | 'desc';

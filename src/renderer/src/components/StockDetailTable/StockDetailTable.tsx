@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import cls from 'classnames';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useMemoizedFn } from 'ahooks';
 import { useAtom, useAtomValue } from 'jotai';
 import { Table, Link, Tooltip } from '@radix-ui/themes';
 import {
@@ -9,13 +9,7 @@ import {
   CaretSortIcon,
   DotFilledIcon,
 } from '@radix-ui/react-icons';
-import {
-  CustomedStockInfo,
-  StockWithReportsDetail,
-  SortConfig,
-  SortKey,
-  KLineType,
-} from '@renderer/types';
+import { StockWithReportsDetail, SortConfig, SortKey, KLineType } from '@renderer/types';
 import {
   customedStockInfoListAtom,
   jMapAtom,
@@ -23,44 +17,11 @@ import {
   useFractileIndices,
   weekKJMapAtom,
 } from '@renderer/models';
-import { computeKdj, computeScore, getStockScore } from '@renderer/utils';
+import { computeKdj, computeScore } from '@renderer/utils';
 // import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
 import { StaredIconButton } from '@renderer/components/StaredIconButton';
 import { ColoredChangeRate, ColoredText } from '@renderer/components/ColoredChangeRate';
 import { fetchKLineItemsRequest } from '@renderer/api';
-
-const computeRecordValue = (
-  record: StockWithReportsDetail,
-  customedInfoMap: Map<string, CustomedStockInfo>,
-  type: SortKey,
-  jMap: Map<string, number>,
-) => {
-  const customedInfo = customedInfoMap.get(record.id);
-  const jv = jMap.get(record.id);
-  if (type === 'LTPRC') {
-    return customedInfo?.latestBuyPrice
-      ? ((record.currentPrice - customedInfo.latestBuyPrice) / record.currentPrice) * 100
-      : NaN;
-  }
-  if (type === 'GLTD') {
-    return customedInfo?.latestBuyDate
-      ? (Date.now() - new Date(customedInfo.latestBuyDate).getTime()) / 86400_000
-      : NaN;
-  }
-  if (type === 'score') {
-    return getStockScore(record);
-  }
-  if (type === 'FCF_avg_3') {
-    return record.fcfAvg3;
-  }
-  if (type === 'CAP') {
-    return record.totalMarketCap;
-  }
-  if (type === 'kdj-j') {
-    return jv || NaN;
-  }
-  return NaN;
-};
 
 const TableHeaderCellWithInfo = memo<{
   title: string;
@@ -199,34 +160,37 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
     }));
   }, [records, indices]);
 
+  const computeRecordValue = useMemoizedFn((record: TableRecord, type: SortKey) => {
+    const customedInfo = customedInfoMap.get(record.id);
+    if (type === 'LTPRC') {
+      return customedInfo?.latestBuyPrice
+        ? ((record.currentPrice - customedInfo.latestBuyPrice) / record.currentPrice) * 100
+        : NaN;
+    }
+    if (type === 'GLTD') {
+      return customedInfo?.latestBuyDate
+        ? (Date.now() - new Date(customedInfo.latestBuyDate).getTime()) / 86400_000
+        : NaN;
+    }
+    if (type === 'score') {
+      return record.score;
+    }
+    if (type === 'FCF_avg_3') {
+      return record.fcfAvg3;
+    }
+    if (type === 'CAP') {
+      return record.totalMarketCap;
+    }
+    if (type === 'kdj-j') {
+      return jMap.get(record.id) || NaN;
+    }
+    if (type === 'kdj-j-week') {
+      return weekJMap.get(record.id) || NaN;
+    }
+    return NaN;
+  });
+
   const sortedRecords = useMemo(() => {
-    const computeRecordValue = (record: TableRecord, type: SortKey) => {
-      const customedInfo = customedInfoMap.get(record.id);
-      const jv = jMap.get(record.id);
-      if (type === 'LTPRC') {
-        return customedInfo?.latestBuyPrice
-          ? ((record.currentPrice - customedInfo.latestBuyPrice) / record.currentPrice) * 100
-          : NaN;
-      }
-      if (type === 'GLTD') {
-        return customedInfo?.latestBuyDate
-          ? (Date.now() - new Date(customedInfo.latestBuyDate).getTime()) / 86400_000
-          : NaN;
-      }
-      if (type === 'score') {
-        return record.score;
-      }
-      if (type === 'FCF_avg_3') {
-        return record.fcfAvg3;
-      }
-      if (type === 'CAP') {
-        return record.totalMarketCap;
-      }
-      if (type === 'kdj-j') {
-        return jv || NaN;
-      }
-      return NaN;
-    };
     if (sort) {
       return tableRecords.slice().sort((a, b) => {
         const aNumber = computeRecordValue(a, sort.key);
@@ -241,7 +205,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
       });
     }
     return tableRecords;
-  }, [tableRecords, sort, customedInfoMap, jMap]);
+  }, [tableRecords, sort, computeRecordValue]);
 
   return (
     <Table.Root variant="surface">
@@ -305,7 +269,16 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               defaultDirection="asc"
             />
           </Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>J (Week)</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>
+            <TableHeaderCellWithInfo
+              title="J (Week)"
+              info="J Value of KDJ (Week)"
+              sortKey="kdj-j-week"
+              onSort={setSort}
+              sortConfig={sort}
+              defaultDirection="asc"
+            />
+          </Table.ColumnHeaderCell>
           {customed ? (
             <>
               <Table.ColumnHeaderCell>
@@ -409,16 +382,14 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   </Table.Cell>
                   <Table.Cell>
                     {customedInfo?.latestBuyPrice ? (
-                      <ColoredChangeRate
-                        rate={computeRecordValue(record, customedInfoMap, 'LTPRC', jMap)}
-                      />
+                      <ColoredChangeRate rate={computeRecordValue(record, 'LTPRC')} />
                     ) : (
                       '-'
                     )}
                   </Table.Cell>
                   <Table.Cell>
                     {customedInfo?.latestBuyDate
-                      ? computeRecordValue(record, customedInfoMap, 'GLTD', jMap).toFixed(0) + 'd'
+                      ? computeRecordValue(record, 'GLTD').toFixed(0) + 'd'
                       : '-'}
                   </Table.Cell>
                 </>
