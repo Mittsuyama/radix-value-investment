@@ -12,10 +12,12 @@ import {
 import { StockWithReportsDetail, SortConfig, SortKey, KLineType } from '@renderer/types';
 import {
   customedStockInfoListAtom,
-  jMapAtom,
   sortConfigAtom,
   useFractileIndices,
+  jMapAtom,
   weekKJMapAtom,
+  turnoverMapAtom,
+  turnoverFractileMapAtom,
 } from '@renderer/models';
 import { computeKdj, computeScore } from '@renderer/utils';
 // import { CustomedStockInfoEditButton } from '@renderer/components/CustomedStockInfoEditButton';
@@ -112,6 +114,8 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
   const [sort, setSort] = useAtom(sortConfigAtom);
   const [jMap, setJMap] = useAtom(jMapAtom);
   const [weekJMap, setWeekJMap] = useAtom(weekKJMapAtom);
+  const [turnoverMap, setTurnoverMap] = useAtom(turnoverMapAtom);
+  const [turnoverFractileMap, setTurnoverFractileMap] = useAtom(turnoverFractileMapAtom);
   const { indices, scoreFractiles } = useFractileIndices();
 
   const customedInfoMap = useMemo(
@@ -124,8 +128,10 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
       try {
         const jMap = new Map<string, number>();
         const weekJMap = new Map<string, number>();
+        const turnoverMap = new Map<string, number>();
         await Promise.all(
           records.map(async ({ id }) => {
+            // kdj 计算（日/周）
             const [items, weekItems] = await Promise.all([
               fetchKLineItemsRequest(id, KLineType.DAY),
               fetchKLineItemsRequest(id, KLineType.WEEK),
@@ -142,10 +148,24 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               weekItems.map((item) => item.high),
             );
             weekJMap.set(id, weekKdj.j.slice(-1)[0]);
+            // 换手率
+            const turnover = items[items.length - 1].turnoverRate;
+            turnoverMap.set(id, turnover);
+            // 五年换手率列表
+            const turnoverList = items
+              .slice(5 * 250)
+              .map((item) => item.turnoverRate)
+              .sort();
+            const index = turnoverList.findIndex((item) => item >= turnover);
+            turnoverFractileMap.set(id, index / turnoverList.length);
           }),
         );
-        setJMap(jMap);
-        setWeekJMap(weekJMap);
+        setTimeout(() => {
+          setJMap(jMap);
+          setWeekJMap(weekJMap);
+          setTurnoverMap(turnoverMap);
+          setTurnoverFractileMap(turnoverFractileMap);
+        }, 0);
       } catch (e) {
         console.error(e);
       }
@@ -212,9 +232,7 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
       <Table.Header>
         <Table.Row>
           <Table.ColumnHeaderCell>#</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Industry</Table.ColumnHeaderCell>
           <Table.ColumnHeaderCell>
             <TableHeaderCellWithInfo title="ROE" info="Last Finnal Year" />
           </Table.ColumnHeaderCell>
@@ -279,6 +297,8 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
               defaultDirection="asc"
             />
           </Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Turnover</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>T (Fractile)</Table.ColumnHeaderCell>
           {customed ? (
             <>
               <Table.ColumnHeaderCell>
@@ -314,17 +334,17 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
           const customedInfo = customedInfoMap.get(record.id);
           const j = jMap.get(record.id);
           const weekJ = weekJMap.get(record.id);
+          const turnover = turnoverMap.get(record.id);
+          const turnoverFractile = turnoverFractileMap.get(record.id);
           const score = record.score;
           return (
             <Table.Row key={record.id} className="hover:bg-accent-2">
               <Table.RowHeaderCell>{index + 1}</Table.RowHeaderCell>
-              <Table.Cell>{record.id}</Table.Cell>
               <Table.Cell>
                 <Link weight="bold" highContrast href={`#/analyst?id=${record.id}`}>
                   {record.name}
                 </Link>
               </Table.Cell>
-              <Table.Cell>{record.industry}</Table.Cell>
               <Table.Cell>{record.lastYearRoe.toFixed(2) + '%'}</Table.Cell>
               <Table.Cell>{record.roeStd.toFixed(2)}</Table.Cell>
               <Table.Cell>{record.ttmPE.toFixed(2)}</Table.Cell>
@@ -371,6 +391,20 @@ export const StockDetaiTable = memo<StockDetaiTableProps>(({ records, customed }
                   <ColoredText
                     text={weekJ.toFixed(2)}
                     status={weekJ < 0 ? 'down' : weekJ > 90 ? 'up' : 'unchange'}
+                    icon={null}
+                  />
+                )}
+              </Table.Cell>
+              <Table.Cell>{turnover ? turnover.toFixed(2) + '%' : '-'}</Table.Cell>
+              <Table.Cell>
+                {typeof turnoverFractile === 'undefined' ? (
+                  '-'
+                ) : (
+                  <ColoredText
+                    text={(turnoverFractile * 100).toFixed(2) + '%'}
+                    status={
+                      turnoverFractile < 0.3 ? 'down' : turnoverFractile > 0.7 ? 'up' : 'unchange'
+                    }
                     icon={null}
                   />
                 )}
