@@ -32,7 +32,7 @@ export const Market = memo(() => {
       try {
         const data = JSON.parse(text);
         list.push(data);
-      } catch {
+      } catch (e) {
         // do nothing
       }
     });
@@ -53,7 +53,7 @@ export const Market = memo(() => {
       return;
     }
     if (!baseList || !details) {
-      console.error(!baseList ? 'no baseList' : 'no ketails');
+      console.error(!baseList ? 'no baseList' : 'no details');
       return;
     }
     const batch = 10;
@@ -84,7 +84,7 @@ export const Market = memo(() => {
     }
 
     const resList = (
-      await getBatchStocksWithReportsDetailRequest({ ids, years: 5 }, baseList)
+      await getBatchStocksWithReportsDetailRequest({ ids, years: 5, month: 12 }, baseList)
     ).map<StockDetailInMarket>((item) => ({
       ...item,
       updateTime: dayjs().toString(),
@@ -93,7 +93,10 @@ export const Market = memo(() => {
       Direcotry.REPORTS,
       resList.map((item) => ({ name: `${item.id}.json`, text: JSON.stringify(item) })),
     );
-    setDetails([...details.filter((item) => !ids.includes(item.id)), ...resList]);
+    setDetails((pre) => [
+      ...(pre || []).filter((item) => !resList.some((res) => res.id === item.id)),
+      ...resList,
+    ]);
 
     if (fetchingRef.current) {
       onFetch();

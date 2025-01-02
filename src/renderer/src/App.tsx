@@ -74,7 +74,7 @@ function App(): JSX.Element {
         const res = await getBatchStocksWithReportsDetailRequest(
           {
             ids: favList,
-            years: 3,
+            years: 5,
           },
           resource,
         );

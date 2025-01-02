@@ -109,35 +109,41 @@ export const fractileConfigs: FractileConfig[] = [
 ];
 
 export const computeSingleScore = (detail: StockWithReportsDetail, index: FractileIndex) => {
-  const value = index.compute(detail, detail.reports[0].data);
+  try {
+    const value = index.compute(detail, detail.reports[0].data);
 
-  if (Number.isNaN(value)) {
-    return 5;
-  }
-
-  const special = index.special?.(value);
-
-  if (typeof special === 'number') {
-    return special;
-  }
-
-  if (value < index.values[0]) {
-    if (index.better === 'high') {
-      return 0;
+    if (Number.isNaN(value)) {
+      return 5;
     }
-    return 10;
-  }
-  if (value > index.values[1]) {
-    if (index.better === 'high') {
+
+    const special = index.special?.(value);
+
+    if (typeof special === 'number') {
+      return special;
+    }
+
+    if (value < index.values[0]) {
+      if (index.better === 'high') {
+        return 0;
+      }
       return 10;
     }
-    return 0;
-  }
+    if (value > index.values[1]) {
+      if (index.better === 'high') {
+        return 10;
+      }
+      return 0;
+    }
 
-  if (index.better === 'high') {
-    return ((value - index.values[0]) / (index.values[1] - index.values[0])) * 10;
-  } else {
-    return ((index.values[1] - value) / (index.values[1] - index.values[0])) * 10;
+    if (index.better === 'high') {
+      return ((value - index.values[0]) / (index.values[1] - index.values[0])) * 10;
+    } else {
+      return ((index.values[1] - value) / (index.values[1] - index.values[0])) * 10;
+    }
+  } catch (e) {
+    console.error(`computeSingleScore ${detail.name}`, e);
+    console.log(`${detail.name} data:`, detail);
+    throw e;
   }
 };
 
